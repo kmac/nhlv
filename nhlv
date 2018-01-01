@@ -34,22 +34,31 @@ import mlbam.util as util
 LOG = None  # initialized in init_logging
 
 
+help_header = """NHL game tracker and stream viewer.
+"""
+help_footer = """See README.md for full usage instructions and pre-requisites.
+              
+Feed Identifiers
+You can use either the short form feed identifier or the long form:
+
+    {}""".format(gamedata.get_feedtype_keystring())
+
+
 def main(argv=None):
     nhl_gamedata = gamedata.NHLGameData()
 
-    help_header = """NHL game tracker and stream viewer.
-    """
-    help_footer = """See README.md for full usage instructions and pre-requisites.
-    """
     # using argparse (2.7+) https://docs.python.org/2/library/argparse.html
-    parser = argparse.ArgumentParser(description=help_header, epilog=help_footer)
+    parser = argparse.ArgumentParser(description=help_header, epilog=help_footer,
+                                     formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("-d", "--date", help="Display games for date. Format: yyyy-mm-dd")
     parser.add_argument("--days", type=int, default=1, help="Number of days to display")
     parser.add_argument("--tomorrow", action="store_true", help="Use tomorrow's date")
     parser.add_argument("--yesterday", action="store_true", help="Use yesterday's date")
     parser.add_argument("-t", "--team", help="Play game for team, one of: {}".format(nhl_gamedata.TEAM_CODES))
-    parser.add_argument("-f", "--feed", help=("Feed type, either a live/archive game feed or highlight feed "
-                                              "(if available). Available feeds are shown in game list."))
+    parser.add_argument("-f", "--feed",
+                        help=("Feed type, either a live/archive game feed or highlight feed "
+                              "(if available). Available feeds are shown in game list,"
+                              "and have a short form and long form (see 'Feed identifiers' section below)"))
     parser.add_argument("--favs", help=("Favourite teams, a comma-separated list of favourite teams "
                                         "(normally specified in config file)"))
     parser.add_argument("--filter", action="store_true", help="Filter output for favourite teams only")
@@ -62,7 +71,7 @@ def main(argv=None):
     parser.add_argument("--username", help="NHL.tv username. Required for live/archived games.")
     parser.add_argument("--password", help="NHL.tv password. Required for live/archived games.")
     parser.add_argument("--use-rogers", help="Use rogers form of NHL.tv authentication")
-    parser.add_argument("--record", action="store_true", help="Save stream to file instead of playing")
+    parser.add_argument("--fetch", action="store_true", help="Save stream to file instead of playing")
     parser.add_argument("-v", "--verbose", action="store_true", help="Increase output verbosity")
     parser.add_argument("-D", "--debug", action="store_true", help="Turn on debug output")
     args = parser.parse_args()
@@ -123,7 +132,7 @@ def main(argv=None):
         # nothing to play; we're done
         return 0
 
-    return common.play_stream(game_data, team_to_play, feedtype, args.date, args.record, auth.nhl_login)
+    return common.play_stream(game_data, team_to_play, feedtype, args.date, args.fetch, auth.nhl_login)
 
 
 if __name__ == "__main__" or __name__ == "main":

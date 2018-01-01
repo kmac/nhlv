@@ -33,7 +33,25 @@ Live Games:                                                      |       |      
 22:30: Calgary Flames (CGY) at San Jose Sharks (SJS)             |       |           | away, home
 19:30: Montréal Canadiens (MTL) at Tampa Bay Lightning (TBL)     |  1-3  | Final     | away, french, home
 19:30: Philadelphia Flyers (PHI) at Florida Panthers (FLA)       |  2-3  | Final     | away, home
+
 ````
+
+With `short_feed_names` option to reduce some clutter (some games have condensed, recap feeds available):
+````
+       2017-12-31                                               | Score |   State   | Feeds
+----------------------------------------------------------------|-------|-----------|------------
+Live Games:                                                     |       |           |            
+20:00: New York Islanders (NYI) at Colorado Avalanche (COL)     |  1-5  | 07:05 3rd | a/h     
+20:00: San Jose Sharks (SJS) at Dallas Stars (DAL)              |  0-6  | 02:25 3rd | a/h     
+21:00: Chicago Blackhawks (CHI) at Calgary Flames (CGY)         |  2-3  | 09:29 2nd | a/nat   
+-----                                                           |       |           |            
+15:30: Toronto Maple Leafs (TOR) at Vegas Golden Knights (VGK)  |  3-6  |     Final | a/fr/h  cnd/rcp
+16:00: Arizona Coyotes (ARI) at Anaheim Ducks (ANA)             |  2-5  |     Final | a/h     cnd/rcp
+18:00: Tampa Bay Lightning (TBL) at Columbus Blue Jackets (CBJ) |  5-0  |     Final | a/h     cnd/rcp
+19:00: Winnipeg Jets (WPG) at Edmonton Oilers (EDM)             |  5-0  |     Final | nat     rcp
+19:00: Pittsburgh Penguins (PIT) at Detroit Red Wings (DET)     |  1-4  |     Final | a/h     
+````
+
 
 This project incorporates some code modified from the following projects: 
 
@@ -74,7 +92,7 @@ Some things you may want to set:
 
 * username: NHL.tv account username
 * password: NHL.tv account password
-* use_rogers: set to true if your account goes through Rogers
+* use_rogers: set to true if your NHL streaming account goes through Rogers
 * favs: a comma-separated list of team codes which are 1) highlighted in the game data and 2) can be filtered on using the --filter option to show only the favourite team(s)
 * scores: a boolean specifying whether or not you want to see scores in the game information. Spoilers.
 * resolution: the stream quality (passed in to streamlink). Use 'best' for full HD at 60 frames/sec.
@@ -83,7 +101,7 @@ Some things you may want to set:
 
 ## TODO
 
-* add `mlbv` to view baseball games
+* add `mlbv` to view baseball games. This should be fairly simple since they both use the MLBAM infrastructure.
 
 
 ## Usage
@@ -97,7 +115,7 @@ Running `nhlv` without options shows you the status of today's games.
 
 ### Playing a Live or Archived Game
 
-If you pass the `-t/--team TEAM` option, the stream is launched for the given team. By default the 'home' feed
+If you pass the `-t/--team TEAM` option, the stream is launched for the given team. By default the local feed
 for the given team is chosen - i.e., it will follow the home/away feed appropriate for the team so that you
 get the local team feed.  You can override the feed using the `-f/--feed` option. This works for either live
 games or for archived games (e.g. if you use the `--date` option to select an earlier date).
@@ -108,19 +126,19 @@ Example:
     nhlv --yesterday -t wpg  # play yesterday's jets game (see below for options on specifying dates)
 
 
-### Recording
+### Fetching
 
-If you pass the `-r/--record` option, instead of launching the video player, the selected stream is saved to
+If you pass the `-f/--fetch` option, instead of launching the video player, the selected stream is saved to
 disk. The stream is named to convention: `<date>-<away_team>-<home_team>-<feed>.mp4`. 
 
 Example: `2017-12-27-edm-wpg-national.mp4`.
 
-You can select the stream for record and then manually launch your video player at a later time while the
-stream is still recording.
+You can select the stream for fetch, then manually launch your video player at a later time while the
+stream is being saved to file. 
 
 Example:
 
-    nhlv --team wpg --record  # record the live jets game
+    nhlv --team wpg --fetch  # fetch the live jets game to disk. Most players let you view while downloading
 
 
 ### Highlights: Recap or Condensed Games
@@ -156,8 +174,10 @@ Note: the common options have both short and long options. Both are shown in the
 
 #### Live Games
 
-    nhlv --team wpg               # play the live jets game
-    nhltv -t wpg --feed national  # choose the national feed
+    nhlv --team wpg               # play the live jets game. The feed is chosen based on jets being home vs. away
+    nhltv -t wpg --feed national  # play live game, choose the national feed
+    nhltv -t wpg --feed away      # play live game, choose the away feed. If jets are the home team this would choose
+                                  # the opponent's feed
 
 #### Archived Games
 
@@ -171,12 +191,12 @@ Use the `--feed` option to select the highlight feed (`recap` or `condensed`):
     nhlv --yesterday -t wpg --feed condensed  # condensed feed
     nhlv --yesterday -t wpg -f recap          # recap feed
 
-#### Recording
+#### Fetch
 
 In these examples the game is save to a .mp4 file in the current directory.
 
-    nhlv --team wpg --record                   # record the live jets game. 
-    nhlv --yesterday -t wpg -f recap --record  # record yesterday's recap
+    nhlv --team wpg --fetch
+    nhlv --yesterday -t wpg -f recap --fetch   # fetch yesterday's recap
 
 #### Using `--days` for Schedule View
 

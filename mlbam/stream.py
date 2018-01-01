@@ -144,7 +144,7 @@ def save_playlist_to_file(stream_url, media_auth):
     LOG.debug('save_playlist_to_file: {}'.format(playlist))
 
 
-def play_stream(game_data, team_to_play, feedtype, date_str, record, login_func):
+def play_stream(game_data, team_to_play, feedtype, date_str, fetch, login_func):
     game_rec = None
     for game_pk in game_data:
         if team_to_play in (game_data[game_pk]['away_abbrev'], game_data[game_pk]['home_abbrev']):
@@ -158,7 +158,7 @@ def play_stream(game_data, team_to_play, feedtype, date_str, record, login_func)
         playback_url = find_highlight_url_for_team(game_rec, feedtype)
         if playback_url is None:
             util.die("No playback url for feed '{}'".format(feedtype))
-        play_highlight(playback_url, get_recording_filename(date_str, game_rec, feedtype, record))
+        play_highlight(playback_url, get_fetch_filename(date_str, game_rec, feedtype, fetch))
     else:
         # handle full game (live or archive)
         # this is the only feature requiring an authenticated session
@@ -177,7 +177,7 @@ def play_stream(game_data, team_to_play, feedtype, date_str, record, login_func)
                 if config.DEBUG:
                     save_playlist_to_file(stream_url, media_auth)
                 streamlink(stream_url, media_auth,
-                           get_recording_filename(date_str, game_rec, feedtype, record))
+                           get_fetch_filename(date_str, game_rec, feedtype, fetch))
             else:
                 LOG.error("No stream URL")
         else:
@@ -185,30 +185,30 @@ def play_stream(game_data, team_to_play, feedtype, date_str, record, login_func)
     return 0
 
 
-def get_recording_filename(date_str, game_rec, feedtype, record):
-    if record:
+def get_fetch_filename(date_str, game_rec, feedtype, fetch):
+    if fetch:
         return '{}-{}-{}-{}.mp4'.format(date_str, game_rec['away_abbrev'], game_rec['home_abbrev'], feedtype)
     else:
         return None
 
 
-def play_highlight(playback_url, record_filename):
+def play_highlight(playback_url, fetch_filename):
     video_player = config.CONFIG.parser['video_player']
-    if (record_filename is None or record_filename != '') \
+    if (fetch_filename is None or fetch_filename != '') \
             and not config.CONFIG.parser.getboolean('streamlink_highlights', True):
         cmd = [video_player, playback_url]
         LOG.info('Playing highlight: ' + str(cmd))
         subprocess.run(cmd)
     else:
-        streamlink_highlight(playback_url, record_filename)
+        streamlink_highlight(playback_url, fetch_filename)
 
 
-def streamlink_highlight(playback_url, record_filename):
+def streamlink_highlight(playback_url, fetch_filename):
     video_player = config.CONFIG.parser['video_player']
     streamlink_cmd = ["streamlink", "--player-no-close", ]
-    if record_filename is not None:
+    if fetch_filename is not None:
         streamlink_cmd.append("--output")
-        streamlink_cmd.append(record_filename)
+        streamlink_cmd.append(fetch_filename)
     elif video_player is not None and video_player != '':
         LOG.debug('Using video_player: {}'.format(video_player))
         streamlink_cmd.append("--player")
@@ -225,7 +225,7 @@ def streamlink_highlight(playback_url, record_filename):
     subprocess.run(streamlink_cmd)
 
 
-def streamlink(stream_url, media_auth, record_filename=None):
+def streamlink(stream_url, media_auth, fetch_filename=None):
     LOG.info("Stream url: " + stream_url)
     auth_cookie_str = "Authorization=" + auth.get_auth_cookie()
     media_auth_cookie_str = media_auth
@@ -238,9 +238,9 @@ def streamlink(stream_url, media_auth, record_filename=None):
                       "--http-cookie", auth_cookie_str,
                       "--http-cookie", media_auth_cookie_str,
                       "--http-header", user_agent_hdr]
-    if record_filename is not None:
+    if fetch_filename is not None:
         streamlink_cmd.append("--output")
-        streamlink_cmd.append(record_filename)
+        streamlink_cmd.append(fetch_filename)
     elif video_player is not None and video_player != '':
         LOG.debug('Using video_player: {}'.format(video_player))
         streamlink_cmd.append("--player")

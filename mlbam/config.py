@@ -30,6 +30,7 @@ class Config:
             'use_rogers': 'false',
             'favs': '',
             'fav_colour': 'cyan',
+            'use_short_feeds': 'true',
             'filter': 'false',
             'cdn': 'akamai',
             'resolution': 'best',

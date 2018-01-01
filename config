@@ -22,8 +22,21 @@
 # Example: favs=wpg,ott
 #favs=
 
+# Favourite team colour, shown in game listings to highlight the favourite teams.
+# Leave this blank to disable
+# Available colours:
+#   black, red, green, orange, blue, purple, cyan, lightgrey, darkgrey,
+#   lightred, lightgreen, yellow, lightblue, pink, lightcyan
+#fav_colour=cyan
+
+# Colour used to highlight games in 'critical' state
+#game_critical_colour=yellow
+
 # Show scores. Scores are hidden by default. If this is set to true then scores are shown.
 #scores=false
+
+# Use short feed names in game listings
+use_short_feeds=true
 
 # Bandwidth/stream resolution for streamlink. One of 'worst', '360p', '540p', '720p_alt', '720p' 'best'
 # Note: 720p (best) is the 60fps stream. The 720p_alt is a lower framerate. 
@@ -39,6 +52,14 @@
 
 # Audio player for audio-only feeds (not implemented yet):
 #audio_player=mpv
+
+# Use streamlink for highlights. If false will send url direct to video_player (no resolution selection)
+streamlink_highlights=true
+# Passthrough the HLS stream to the player for highlights: allows seeking
+streamlink_passthrough_highlights=true
+
+# Passthrough the HLS stream to the player for live/archived games
+streamlink_passthrough=false
 
 # Turn on extra debugging information
 #debug=false
