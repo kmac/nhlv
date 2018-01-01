@@ -19,31 +19,6 @@ import mlbam.config as config
 LOG = logging.getLogger(__name__)
 
 
-def is_fav(game_rec):
-    if 'favourite' in game_rec:
-        return game_rec['favourite']
-    if config.CONFIG.parser['favs'] is None or config.CONFIG.parser['favs'] == '':
-        return False
-    for fav in config.CONFIG.parser['favs'].split(','):
-        fav = fav.strip()
-        if fav in (game_rec['away_abbrev'], game_rec['home_abbrev']):
-            return True
-    return False
-
-
-def filter_favs(game_rec):
-    """Returns the game_rec if the game matches the favourites, or if no filtering is active."""
-    if not config.CONFIG.parser.getboolean('filter', 'false'):
-        return game_rec
-    if config.CONFIG.parser['favs'] is None or config.CONFIG.parser['favs'] == '':
-        return game_rec
-    for fav in config.CONFIG.parser['favs'].split(','):
-        fav = fav.strip()
-        if fav in (game_rec['away_abbrev'], game_rec['home_abbrev']):
-            return game_rec
-    return None
-
-
 def select_feed_for_team(game_rec, team_code, feedtype=None):
     found = False
     if game_rec['away_abbrev'] == team_code:
@@ -183,7 +158,7 @@ def play_stream(game_data, team_to_play, feedtype, date_str, record, login_func)
         playback_url = find_highlight_url_for_team(game_rec, feedtype)
         if playback_url is None:
             util.die("No playback url for feed '{}'".format(feedtype))
-        run_streamlink_highlight(playback_url, get_recording_filename(date_str, game_rec, feedtype, record))
+        play_highlight(playback_url, get_recording_filename(date_str, game_rec, feedtype, record))
     else:
         # handle full game (live or archive)
         # this is the only feature requiring an authenticated session
@@ -201,8 +176,8 @@ def play_stream(game_data, team_to_play, feedtype, date_str, record, login_func)
             if stream_url is not None:
                 if config.DEBUG:
                     save_playlist_to_file(stream_url, media_auth)
-                run_streamlink(stream_url, media_auth,
-                               get_recording_filename(date_str, game_rec, feedtype, record))
+                streamlink(stream_url, media_auth,
+                           get_recording_filename(date_str, game_rec, feedtype, record))
             else:
                 LOG.error("No stream URL")
         else:
@@ -217,7 +192,18 @@ def get_recording_filename(date_str, game_rec, feedtype, record):
         return None
 
 
-def run_streamlink_highlight(playback_url, record_filename):
+def play_highlight(playback_url, record_filename):
+    video_player = config.CONFIG.parser['video_player']
+    if (record_filename is None or record_filename != '') \
+            and not config.CONFIG.parser.getboolean('streamlink_highlights', True):
+        cmd = [video_player, playback_url]
+        LOG.info('Playing highlight: ' + str(cmd))
+        subprocess.run(cmd)
+    else:
+        streamlink_highlight(playback_url, record_filename)
+
+
+def streamlink_highlight(playback_url, record_filename):
     video_player = config.CONFIG.parser['video_player']
     streamlink_cmd = ["streamlink", "--player-no-close", ]
     if record_filename is not None:
@@ -227,17 +213,19 @@ def run_streamlink_highlight(playback_url, record_filename):
         LOG.debug('Using video_player: {}'.format(video_player))
         streamlink_cmd.append("--player")
         streamlink_cmd.append(video_player)
+    if config.CONFIG.parser.getboolean('streamlink_passthrough_highlights', True):
+        streamlink_cmd.append("--player-passthrough=hls")
     if config.VERBOSE:
         streamlink_cmd.append("--loglevel")
         streamlink_cmd.append("debug")
     streamlink_cmd.append(playback_url)
     streamlink_cmd.append(config.CONFIG.parser.get('resolution', 'best'))
 
-    LOG.info('Playing highlight: ' + str(streamlink_cmd))
+    LOG.info('Playing highlight via streamlink: ' + str(streamlink_cmd))
     subprocess.run(streamlink_cmd)
 
 
-def run_streamlink(stream_url, media_auth, record_filename=None):
+def streamlink(stream_url, media_auth, record_filename=None):
     LOG.info("Stream url: " + stream_url)
     auth_cookie_str = "Authorization=" + auth.get_auth_cookie()
     media_auth_cookie_str = media_auth
@@ -257,6 +245,8 @@ def run_streamlink(stream_url, media_auth, record_filename=None):
         LOG.debug('Using video_player: {}'.format(video_player))
         streamlink_cmd.append("--player")
         streamlink_cmd.append(video_player)
+        if config.CONFIG.parser.getboolean('streamlink_passthrough', False):
+            streamlink_cmd.append("--player-passthrough=hls")
     if config.VERBOSE:
         streamlink_cmd.append("--loglevel")
         streamlink_cmd.append("debug")

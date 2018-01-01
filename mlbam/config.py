@@ -34,6 +34,9 @@ class Config:
             'cdn': 'akamai',
             'resolution': 'best',
             'video_player': 'mpv',
+            'streamlink_highlights': 'true',  # if false will send url direct to video_player (no resolution selection)
+            'streamlink_passthrough_highlights': 'true',  # allows seeking
+            'streamlink_passthrough': 'false',
             'audio_player': 'mpv',
             'debug': 'false',
             'verbose': 'false',
