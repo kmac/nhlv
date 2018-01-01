@@ -257,3 +257,8 @@ def streamlink(stream_url, media_auth, fetch_filename=None):
     subprocess.run(streamlink_cmd)
 
     return streamlink_cmd
+
+
+def play_audio(stream_url):
+    # http://hlsaudio-akc.med2.med.nhl.com/ls04/nhl/2017/12/31/NHL_GAME_AUDIO_TORVGK_M2_VISIT_20171231_1513799214035/master_radio.m3u8
+    pass

@@ -27,6 +27,8 @@ FEEDTYPE_MAP = {
     'national': 'nat',
     'condensed': 'cnd',
     'recap': 'rcp',
+    'audio-away': 'aud-a',
+    'audio-home': 'aud-h',
 }
 
 
@@ -95,14 +97,14 @@ class NHLGameData(GameData):
         non_highlight_feeds = list()
         use_short_feeds = config.CONFIG.parser.getboolean('use_short_feeds', True)
         for feed in sorted(game_rec['feed'].keys()):
-            if feed not in config.HIGHLIGHT_FEEDTYPES:
+            if feed not in config.HIGHLIGHT_FEEDTYPES and not feed.startswith('audio-'):
                 if use_short_feeds:
                     non_highlight_feeds.append(self.convert_feedtype_to_short(feed))
                 else:
                     non_highlight_feeds.append(feed)
         highlight_feeds = list()
         for feed in game_rec['feed'].keys():
-            if feed in config.HIGHLIGHT_FEEDTYPES:
+            if feed in config.HIGHLIGHT_FEEDTYPES and not feed.startswith('audio-'):
                 if use_short_feeds:
                     highlight_feeds.append(self.convert_feedtype_to_short(feed))
                 else:
@@ -201,6 +203,13 @@ class NHLGameData(GameData):
                         for playback_item in stream['playbacks']:
                             if playback_item['name'] == config.CONFIG.playback_scenario:
                                 game_rec['feed'][feedtype]['playback_url'] = playback_item['url']
+                elif media['title'] == 'Audio':
+                    for stream in media['items']:
+                        feedtype = 'audio-' + str(stream['mediaFeedType']).lower()  # home, away, national, french, ...
+                        game_rec['feed'][feedtype] = dict()
+                        game_rec['feed'][feedtype]['mediaPlaybackId'] = str(stream['mediaPlaybackId'])
+                        game_rec['feed'][feedtype]['eventId'] = str(stream['eventId'])
+                        game_rec['feed'][feedtype]['callLetters'] = str(stream['callLetters'])
         return game_data
 
     def show_game_data(self, game_date, num_days=1):
@@ -304,3 +313,9 @@ class NHLGameData(GameData):
                                                                             game_rec['abstractGameState'],
                                                                             game_pk,
                                                                             game_rec['feed'][feedtype]['mediaPlaybackId']))
+
+    def get_audio_stream_url(self):
+        # http://hlsaudio-akc.med2.med.nhl.com/ls04/nhl/2017/12/31/NHL_GAME_AUDIO_TORVGK_M2_VISIT_20171231_1513799214035/master_radio.m3u8
+        pass
+
+
