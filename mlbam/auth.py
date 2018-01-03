@@ -67,9 +67,9 @@ def nhl_login():
         "Origin": "https://www.nhl.com",
         "Authorization": "Basic d2ViX25obC12MS4wLjA6MmQxZDg0NmVhM2IxOTRhMThlZjQwYWM5ZmJjZTk3ZTM=",
     }
-    userid = config.CONFIG.config['username']
-    passwd = config.CONFIG.config['password']
-    use_rogers = config.CONFIG.config.getboolean['use_rogers']
+    userid = config.CONFIG.parser['username']
+    passwd = config.CONFIG.parser['password']
+    use_rogers = config.CONFIG.parser.getboolean('use_rogers', False)
     util.log_http(url, 'post', headers, sys._getframe().f_code.co_name)
     r = requests.post(url, headers=headers, data='', cookies=load_cookies(), verify=config.VERIFY_SSL)
     if r.status_code >= 400:
