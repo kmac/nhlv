@@ -187,9 +187,11 @@ def play_stream(game_data, team_to_play, feedtype, date_str, fetch, login_func):
 
 def get_fetch_filename(date_str, game_rec, feedtype, fetch):
     if fetch:
-        return '{}-{}-{}-{}.mp4'.format(date_str, game_rec['away_abbrev'], game_rec['home_abbrev'], feedtype)
-    else:
-        return None
+        if feedtype is None:
+            return '{}-{}-{}.mp4'.format(date_str, game_rec['away_abbrev'], game_rec['home_abbrev'])
+        else:
+            return '{}-{}-{}-{}.mp4'.format(date_str, game_rec['away_abbrev'], game_rec['home_abbrev'], feedtype)
+    return None
 
 
 def play_highlight(playback_url, fetch_filename):
@@ -226,7 +228,7 @@ def streamlink_highlight(playback_url, fetch_filename):
 
 
 def streamlink(stream_url, media_auth, fetch_filename=None):
-    LOG.info("Stream url: " + stream_url)
+    LOG.debug("Stream url: " + stream_url)
     auth_cookie_str = "Authorization=" + auth.get_auth_cookie()
     media_auth_cookie_str = media_auth
     user_agent_hdr = 'User-Agent=' + config.CONFIG.ua_iphone
@@ -239,6 +241,12 @@ def streamlink(stream_url, media_auth, fetch_filename=None):
                       "--http-cookie", media_auth_cookie_str,
                       "--http-header", user_agent_hdr]
     if fetch_filename is not None:
+        if os.path.exists(fetch_filename):
+            # don't overwrite existing file - use a new name based on hour,minute
+            fetch_filename_orig = fetch_filename
+            fsplit = os.path.splitext(fetch_filename)
+            fetch_filename = '{}-{}{}'.format(fsplit[0], datetime.strftime(datetime.today(), "%H%m"), fsplit[1])
+            log.info('File {} exists, using {} instead'.format(fetch_filename_orig, fetch_filename))
         streamlink_cmd.append("--output")
         streamlink_cmd.append(fetch_filename)
     elif video_player is not None and video_player != '':
@@ -253,7 +261,7 @@ def streamlink(stream_url, media_auth, fetch_filename=None):
     streamlink_cmd.append(stream_url)
     streamlink_cmd.append(config.CONFIG.parser.get('resolution', 'best'))
 
-    LOG.info('Playing: ' + str(streamlink_cmd))
+    LOG.debug('Playing: ' + str(streamlink_cmd))
     subprocess.run(streamlink_cmd)
 
     return streamlink_cmd

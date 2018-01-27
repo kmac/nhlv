@@ -27,7 +27,7 @@ from datetime import timedelta
 import mlbam.auth as auth
 import mlbam.config as config
 import mlbam.gamedata as gamedata
-import mlbam.stream as common
+import mlbam.stream as stream
 import mlbam.util as util
 
 
@@ -37,7 +37,7 @@ LOG = None  # initialized in init_logging
 help_header = """NHL game tracker and stream viewer.
 """
 help_footer = """See README.md for full usage instructions and pre-requisites.
-              
+
 Feed Identifiers
 You can use either the short form feed identifier or the long form:
 
@@ -75,7 +75,7 @@ def main(argv=None):
     parser.add_argument("-v", "--verbose", action="store_true", help="Increase output verbosity")
     parser.add_argument("-D", "--debug", action="store_true", help="Turn on debug output")
     args = parser.parse_args()
-    
+
     team_to_play = None
     feedtype = None
 
@@ -125,14 +125,13 @@ def main(argv=None):
     if len(game_data_list) > 0:
         game_data = game_data_list[0]
     else:
-        LOG.info('No game data for {}'.format(args.date))
         return 0
 
     if team_to_play is None:
         # nothing to play; we're done
         return 0
 
-    return common.play_stream(game_data, team_to_play, feedtype, args.date, args.fetch, auth.nhl_login)
+    return stream.play_stream(game_data, team_to_play, feedtype, args.date, args.fetch, auth.nhl_login)
 
 
 if __name__ == "__main__" or __name__ == "main":

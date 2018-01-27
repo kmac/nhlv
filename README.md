@@ -36,23 +36,6 @@ Live Games:                                                      |       |      
 
 ````
 
-With `short_feed_names` option to reduce some clutter (some games have condensed, recap feeds available):
-````
-       2017-12-31                                               | Score |   State   | Feeds
-----------------------------------------------------------------|-------|-----------|------------
-Live Games:                                                     |       |           |            
-20:00: New York Islanders (NYI) at Colorado Avalanche (COL)     |  1-5  | 07:05 3rd | a/h     
-20:00: San Jose Sharks (SJS) at Dallas Stars (DAL)              |  0-6  | 02:25 3rd | a/h     
-21:00: Chicago Blackhawks (CHI) at Calgary Flames (CGY)         |  2-3  | 09:29 2nd | a/nat   
------                                                           |       |           |            
-15:30: Toronto Maple Leafs (TOR) at Vegas Golden Knights (VGK)  |  3-6  |     Final | a/fr/h  cnd/rcp
-16:00: Arizona Coyotes (ARI) at Anaheim Ducks (ANA)             |  2-5  |     Final | a/h     cnd/rcp
-18:00: Tampa Bay Lightning (TBL) at Columbus Blue Jackets (CBJ) |  5-0  |     Final | a/h     cnd/rcp
-19:00: Winnipeg Jets (WPG) at Edmonton Oilers (EDM)             |  5-0  |     Final | nat     rcp
-19:00: Pittsburgh Penguins (PIT) at Detroit Red Wings (DET)     |  1-4  |     Final | a/h     
-````
-
-
 This project incorporates some code modified from the following projects: 
 
 * https://github.com/eracknaphobia/plugin.video.nhlgcl (Kodi plugin)
@@ -62,6 +45,7 @@ This project incorporates some code modified from the following projects:
 ## Pre-Requisites:
 
 `nhlv` requires the following software to be installed and configured:
+
 * python 
     - python v3 (tested with 3.6) 
 * python modules:
@@ -69,6 +53,14 @@ This project incorporates some code modified from the following projects:
     - [python-dateutil](https://dateutil.readthedocs.io/en/stable/) module
 * [streamlink](https://streamlink.github.io/)
 * a video player. Either `vlc` or `mpv` is recommended.
+
+
+Note on installing python modules: 
+
+Install via `pip` (preferably using virtualenv):
+
+    pip install requests
+    pip install python-dateutil
 
 This software is tested under linux. It should work under Windows or Mac with the pre-requisites installed, but may require minor tweaks.
 
