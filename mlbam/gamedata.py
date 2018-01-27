@@ -232,24 +232,24 @@ class NHLGameData(GameData):
                 date_hdr = '{:7}{}'.format('','{}'.format(game_date))
                 show_scores = config.CONFIG.parser.getboolean('scores')
                 if show_scores:
-                    print("{:63} | {:^5} | {:^9} | {}".format(date_hdr, 'Score', 'State', 'Feeds'))
-                    print("{}|{}|{}|{}".format('-' * 64, '-' * 7, '-' * 11, '-' * 12))
+                    print("{:64} | {:^5} | {:^9} | {}".format(date_hdr, 'Score', 'State', 'Feeds'))
+                    print("{}|{}|{}|{}".format('-' * 65, '-' * 7, '-' * 11, '-' * 14))
                 else:
-                    print("{:63} | {:^9} | {}".format(date_hdr, 'State', 'Feeds'))
-                    print("{}|{}|{}".format('-' * 64, '-' * 11, '-' * 12))
+                    print("{:64} | {:^9} | {}".format(date_hdr, 'State', 'Feeds'))
+                    print("{}|{}|{}".format('-' * 65, '-' * 11, '-' * 12))
 
                 if len(live_game_pks) > 0:
                     if show_scores:
-                        print("{:63} |{}|{}|{}".format('Live Games:', ' ' * 7, ' ' * 11, ' ' * 12))
+                        print("{:64} |{}|{}|{}".format('Live Games:', ' ' * 7, ' ' * 11, ' ' * 12))
                     else:
-                        print("{:63} |{}|{}".format('Live Games:', ' ' * 11, ' ' * 12))
+                        print("{:64} |{}|{}".format('Live Games:', ' ' * 11, ' ' * 12))
                     for game_pk in live_game_pks:
                         if filter_favs(game_data[game_pk]) is not None:
                             self.show_game_details(game_pk, game_data[game_pk])
                     if show_scores:
-                        print("{:63} |{}|{}|{}".format('-----', ' ' * 7, ' ' * 11, ' ' * 12))
+                        print("{:64} |{}|{}|{}".format('-----', ' ' * 7, ' ' * 11, ' ' * 12))
                     else:
-                        print("{:63} |{}|{}".format('-----', ' ' * 11, ' ' * 12))
+                        print("{:64} |{}|{}".format('-----', ' ' * 11, ' ' * 12))
                 for game_pk in game_data:
                     if game_data[game_pk]['abstractGameState'] != 'Live':
                         if filter_favs(game_data[game_pk]) is not None:
@@ -299,14 +299,14 @@ class NHLGameData(GameData):
             score = ''
             if game_rec['abstractGameState'] not in ('Preview', ):
                 score = '{}-{}'.format(game_rec['away_score'], game_rec['home_score'])
-            print("{0}{2:<63}{1} | {0}{3:^5}{1} | {4}{5:>9}{6} | {0}{7}{1}".format(color_on, color_off,
+            print("{0}{2:<64}{1} | {0}{3:^5}{1} | {4}{5:>9}{6} | {0}{7}{1}".format(color_on, color_off,
                                                                                    game_info_str, score,
                                                                                    game_state_color_on,
                                                                                    game_state,
                                                                                    game_state_color_off,
                                                                                    self.__get_feeds_for_display(game_rec)))
         else:
-            print("{0}{2:<63}{1} | {0}{3:^9}{1} | {0}{4}{1}".format(color_on, color_off,
+            print("{0}{2:<64}{1} | {0}{3:^9}{1} | {0}{4}{1}".format(color_on, color_off,
                                                                     game_info_str, game_state,
                                                                     self.__get_feeds_for_display(game_rec)))
         if config.CONFIG.parser.getboolean('debug') and config.CONFIG.parser.getboolean('verbose'):
