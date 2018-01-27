@@ -86,7 +86,6 @@ class GameData:
 
 class NHLGameData(GameData):
 
-    # not currently used (also, would be missing special games like all-star game):
     TEAM_CODES = ('ana', 'ari', 'bos', 'buf', 'car', 'cbj', 'cgy', 'chi', 'col', 'dal', 'det', 'edm', 'fla', 'lak',
                   'min', 'mtl', 'njd', 'nsh', 'nyi', 'nyr', 'ott', 'phi', 'pit', 'sjs', 'stl', 'tbl', 'tor', 'van',
                   'vgk', 'wpg', 'wsh')
@@ -214,14 +213,17 @@ class NHLGameData(GameData):
                             game_rec['feed'][feedtype]['callLetters'] = str(stream['callLetters'])
         return game_data
 
-    def show_game_data(self, game_date, num_days=1):
+    def fetch_game_data(self, game_date, num_days=1, show_games=True):
         game_data_list = list()
+        show_scores = config.CONFIG.parser.getboolean('scores')
         for i in range(0, num_days):
             game_data = self._get_game_data(game_date)
+            outl = list()  # holds list of strings for output
+            print_outl = False
             if game_data is not None:
                 game_data_list.append(game_data)
-                if len(game_data_list) > 1:
-                    print('')  # add line feed between days
+                if not show_games:
+                    continue
                 live_game_pks = list()
                 for game_pk in game_data:
                     if game_data[game_pk]['abstractGameState'] == 'Live':
@@ -230,39 +232,46 @@ class NHLGameData(GameData):
 
                 # print header
                 date_hdr = '{:7}{}'.format('','{}'.format(game_date))
-                show_scores = config.CONFIG.parser.getboolean('scores')
                 if show_scores:
-                    print("{:64} | {:^5} | {:^9} | {}".format(date_hdr, 'Score', 'State', 'Feeds'))
-                    print("{}|{}|{}|{}".format('-' * 65, '-' * 7, '-' * 11, '-' * 14))
+                    outl.append("{:64} | {:^5} | {:^9} | {}".format(date_hdr, 'Score', 'State', 'Feeds'))
+                    outl.append("{}|{}|{}|{}".format('-' * 65, '-' * 7, '-' * 11, '-' * 14))
                 else:
-                    print("{:64} | {:^9} | {}".format(date_hdr, 'State', 'Feeds'))
-                    print("{}|{}|{}".format('-' * 65, '-' * 11, '-' * 12))
+                    outl.append("{:64} | {:^9} | {}".format(date_hdr, 'State', 'Feeds'))
+                    outl.append("{}|{}|{}".format('-' * 65, '-' * 11, '-' * 12))
 
                 if len(live_game_pks) > 0:
                     if show_scores:
-                        print("{:64} |{}|{}|{}".format('Live Games:', ' ' * 7, ' ' * 11, ' ' * 12))
+                        outl.append("{:64} |{}|{}|{}".format('Live Games:', ' ' * 7, ' ' * 11, ' ' * 12))
                     else:
-                        print("{:64} |{}|{}".format('Live Games:', ' ' * 11, ' ' * 12))
+                        outl.append("{:64} |{}|{}".format('Live Games:', ' ' * 11, ' ' * 12))
                     for game_pk in live_game_pks:
                         if filter_favs(game_data[game_pk]) is not None:
-                            self.show_game_details(game_pk, game_data[game_pk])
+                            outl.extend(self.show_game_details(game_pk, game_data[game_pk]))
+                            print_outl = True
                     if show_scores:
-                        print("{:64} |{}|{}|{}".format('-----', ' ' * 7, ' ' * 11, ' ' * 12))
+                        outl.append("{:64} |{}|{}|{}".format('-----', ' ' * 7, ' ' * 11, ' ' * 12))
                     else:
-                        print("{:64} |{}|{}".format('-----', ' ' * 11, ' ' * 12))
+                        outl.append("{:64} |{}|{}".format('-----', ' ' * 11, ' ' * 12))
                 for game_pk in game_data:
                     if game_data[game_pk]['abstractGameState'] != 'Live':
                         if filter_favs(game_data[game_pk]) is not None:
-                            self.show_game_details(game_pk, game_data[game_pk])
+                            outl.extend(self.show_game_details(game_pk, game_data[game_pk]))
+                            print_outl = True
                 # print(' ' * 5, get_feedtype_keystring())
             else:
-                LOG.info("No game data for {}".format(game_date))
+                outl.append("No game data for {}".format(game_date))
+                print_outl = True
+            if print_outl:
+                print('\n'.join(outl))
+                if num_days > 1:
+                    print('')  # add line feed between days
 
             game_date = datetime.strftime(datetime.strptime(game_date, "%Y-%m-%d") + timedelta(days=1), "%Y-%m-%d")
 
         return game_data_list
 
     def show_game_details(self, game_pk, game_rec):
+        outl = list()
         color_on = ''
         color_off = ''
         if is_fav(game_rec):
@@ -299,22 +308,23 @@ class NHLGameData(GameData):
             score = ''
             if game_rec['abstractGameState'] not in ('Preview', ):
                 score = '{}-{}'.format(game_rec['away_score'], game_rec['home_score'])
-            print("{0}{2:<64}{1} | {0}{3:^5}{1} | {4}{5:>9}{6} | {0}{7}{1}".format(color_on, color_off,
-                                                                                   game_info_str, score,
-                                                                                   game_state_color_on,
-                                                                                   game_state,
-                                                                                   game_state_color_off,
-                                                                                   self.__get_feeds_for_display(game_rec)))
+            outl.append("{0}{2:<64}{1} | {0}{3:^5}{1} | {4}{5:>9}{6} | {0}{7}{1}".format(color_on, color_off,
+                                                                                         game_info_str, score,
+                                                                                         game_state_color_on,
+                                                                                         game_state,
+                                                                                         game_state_color_off,
+                                                                                         self.__get_feeds_for_display(game_rec)))
         else:
-            print("{0}{2:<64}{1} | {0}{3:^9}{1} | {0}{4}{1}".format(color_on, color_off,
-                                                                    game_info_str, game_state,
-                                                                    self.__get_feeds_for_display(game_rec)))
+            outl.append("{0}{2:<64}{1} | {0}{3:^9}{1} | {0}{4}{1}".format(color_on, color_off,
+                                                                          game_info_str, game_state,
+                                                                          self.__get_feeds_for_display(game_rec)))
         if config.CONFIG.parser.getboolean('debug') and config.CONFIG.parser.getboolean('verbose'):
             for feedtype in game_rec['feed']:
-                print('    {}: {}  [game_pk:{}, mediaPlaybackId:{}]'.format(feedtype,
-                                                                            game_rec['abstractGameState'],
-                                                                            game_pk,
-                                                                            game_rec['feed'][feedtype]['mediaPlaybackId']))
+                outl.append('    {}: {}  [game_pk:{}, mediaPlaybackId:{}]'.format(feedtype,
+                                                                                  game_rec['abstractGameState'],
+                                                                                  game_pk,
+                                                                                  game_rec['feed'][feedtype]['mediaPlaybackId']))
+        return outl
 
     def get_audio_stream_url(self):
         # http://hlsaudio-akc.med2.med.nhl.com/ls04/nhl/2017/12/31/NHL_GAME_AUDIO_TORVGK_M2_VISIT_20171231_1513799214035/master_radio.m3u8

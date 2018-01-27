@@ -52,8 +52,8 @@ def main(argv=None):
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("-d", "--date", help="Display games for date. Format: yyyy-mm-dd")
     parser.add_argument("--days", type=int, default=1, help="Number of days to display")
-    parser.add_argument("--tomorrow", action="store_true", help="Use tomorrow's date")
-    parser.add_argument("--yesterday", action="store_true", help="Use yesterday's date")
+    parser.add_argument("--tomorrow", "--tom", action="store_true", help="Use tomorrow's date")
+    parser.add_argument("--yesterday", "--yes", action="store_true", help="Use yesterday's date")
     parser.add_argument("-t", "--team", help="Play game for team, one of: {}".format(nhl_gamedata.TEAM_CODES))
     parser.add_argument("-f", "--feed",
                         help=("Feed type, either a live/archive game feed or highlight feed "
@@ -71,7 +71,7 @@ def main(argv=None):
     parser.add_argument("--username", help="NHL.tv username. Required for live/archived games.")
     parser.add_argument("--password", help="NHL.tv password. Required for live/archived games.")
     parser.add_argument("--use-rogers", help="Use rogers form of NHL.tv authentication")
-    parser.add_argument("--fetch", action="store_true", help="Save stream to file instead of playing")
+    parser.add_argument("--fetch", "--record", action="store_true", help="Save stream to file instead of playing")
     parser.add_argument("-v", "--verbose", action="store_true", help="Increase output verbosity")
     parser.add_argument("-D", "--debug", action="store_true", help="Turn on debug output")
     args = parser.parse_args()
@@ -100,7 +100,8 @@ def main(argv=None):
     if args.team:
         team_to_play = args.team.lower()
         if team_to_play not in nhl_gamedata.TEAM_CODES:
-            util.die('Invalid team code: {}'.format(team_to_play))
+            # Issue #4 all-star game has funky team codes
+            LOG.warn('Unexpected team code: {}'.format(team_to_play))
     if args.feed:
         feedtype = nhl_gamedata.convert_to_long_feedtype(args.feed.lower())
     if args.resolution:
@@ -121,14 +122,18 @@ def main(argv=None):
     elif args.date is None:
         args.date = datetime.strftime(datetime.today(), "%Y-%m-%d")
 
-    game_data_list = nhl_gamedata.show_game_data(args.date, args.days)
-    if len(game_data_list) > 0:
-        game_data = game_data_list[0]
-    else:
-        return 0
+    # fetch and display games (don't display if we're going to start a stream)
+    game_data_list = nhl_gamedata.fetch_game_data(args.date, args.days, team_to_play is None)
 
     if team_to_play is None:
         # nothing to play; we're done
+        return 0
+
+    # from this point we only care about first day in list
+    if len(game_data_list) > 0:
+        game_data = game_data_list[0]
+    else:
+        # nothing to stream
         return 0
 
     return stream.play_stream(game_data, team_to_play, feedtype, args.date, args.fetch, auth.nhl_login)
