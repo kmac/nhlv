@@ -150,9 +150,9 @@ You don't need login credentials to play highlights.
 
 You can specify the date to view using one of the following:
 
-* `-d|--date yyyy-mm-dd`  # specific date
-* `--yesterday`           # shortcut to yesterday
-* `--tomorrow`            # shortcut to tomorrow
+    -d|--date yyyy-mm-dd    # specific date
+    --yesterday (or --yes)  # shortcut to yesterday
+    --tomorrow  (or --tom)  # shortcut to tomorrow
 
 For listing game data only (doesn't make sense for viewing), you can specify a number of days using the
 `--days DAYS` option. Use this to show a schedule. It's useful with the `--filter` option to filter based on
