@@ -86,6 +86,7 @@ class GameData:
 
 class NHLGameData(GameData):
 
+    # not currently used (also, would be missing special games like all-star game):
     TEAM_CODES = ('ana', 'ari', 'bos', 'buf', 'car', 'cbj', 'cgy', 'chi', 'col', 'dal', 'det', 'edm', 'fla', 'lak',
                   'min', 'mtl', 'njd', 'nsh', 'nyi', 'nyr', 'ott', 'phi', 'pit', 'sjs', 'stl', 'tbl', 'tor', 'van',
                   'vgk', 'wpg', 'wsh')
@@ -176,40 +177,41 @@ class NHLGameData(GameData):
 
             # epg
             game_rec['feed'] = dict()
-            for media in game['content']['media']['epg']:
-                if media['title'] == 'NHLTV':
-                    for stream in media['items']:
-                        if stream['mediaFeedType'] != 'COMPOSITE' and stream['mediaFeedType'] != 'ISO':
-                            feedtype = str(stream['mediaFeedType']).lower()  # home, away, national, french, ...
+            if 'media' in game['content'] and 'epg' in game['content']['media']:
+                for media in game['content']['media']['epg']:
+                    if media['title'] == 'NHLTV':
+                        for stream in media['items']:
+                            if stream['mediaFeedType'] != 'COMPOSITE' and stream['mediaFeedType'] != 'ISO':
+                                feedtype = str(stream['mediaFeedType']).lower()  # home, away, national, french, ...
+                                game_rec['feed'][feedtype] = dict()
+                                game_rec['feed'][feedtype]['mediaPlaybackId'] = str(stream['mediaPlaybackId'])
+                                game_rec['feed'][feedtype]['eventId'] = str(stream['eventId'])
+                                game_rec['feed'][feedtype]['callLetters'] = str(stream['callLetters'])
+                    elif media['title'] == 'Extended Highlights':
+                        feedtype = 'condensed'
+                        if len(media['items']) > 0:
+                            game_rec['feed'][feedtype] = dict()
+                            stream = media['items'][0]
+                            game_rec['feed'][feedtype]['mediaPlaybackId'] = str(stream['mediaPlaybackId'])
+                            for playback_item in stream['playbacks']:
+                                if playback_item['name'] == config.CONFIG.playback_scenario:
+                                    game_rec['feed'][feedtype]['playback_url'] = playback_item['url']
+                    elif media['title'] == 'Recap':
+                        feedtype = 'recap'
+                        if len(media['items']) > 0:
+                            game_rec['feed'][feedtype] = dict()
+                            stream = media['items'][0]
+                            game_rec['feed'][feedtype]['mediaPlaybackId'] = str(stream['mediaPlaybackId'])
+                            for playback_item in stream['playbacks']:
+                                if playback_item['name'] == config.CONFIG.playback_scenario:
+                                    game_rec['feed'][feedtype]['playback_url'] = playback_item['url']
+                    elif media['title'] == 'Audio':
+                        for stream in media['items']:
+                            feedtype = 'audio-' + str(stream['mediaFeedType']).lower()  # home, away, national, french, ...
                             game_rec['feed'][feedtype] = dict()
                             game_rec['feed'][feedtype]['mediaPlaybackId'] = str(stream['mediaPlaybackId'])
                             game_rec['feed'][feedtype]['eventId'] = str(stream['eventId'])
                             game_rec['feed'][feedtype]['callLetters'] = str(stream['callLetters'])
-                elif media['title'] == 'Extended Highlights':
-                    feedtype = 'condensed'
-                    if len(media['items']) > 0:
-                        game_rec['feed'][feedtype] = dict()
-                        stream = media['items'][0]
-                        game_rec['feed'][feedtype]['mediaPlaybackId'] = str(stream['mediaPlaybackId'])
-                        for playback_item in stream['playbacks']:
-                            if playback_item['name'] == config.CONFIG.playback_scenario:
-                                game_rec['feed'][feedtype]['playback_url'] = playback_item['url']
-                elif media['title'] == 'Recap':
-                    feedtype = 'recap'
-                    if len(media['items']) > 0:
-                        game_rec['feed'][feedtype] = dict()
-                        stream = media['items'][0]
-                        game_rec['feed'][feedtype]['mediaPlaybackId'] = str(stream['mediaPlaybackId'])
-                        for playback_item in stream['playbacks']:
-                            if playback_item['name'] == config.CONFIG.playback_scenario:
-                                game_rec['feed'][feedtype]['playback_url'] = playback_item['url']
-                elif media['title'] == 'Audio':
-                    for stream in media['items']:
-                        feedtype = 'audio-' + str(stream['mediaFeedType']).lower()  # home, away, national, french, ...
-                        game_rec['feed'][feedtype] = dict()
-                        game_rec['feed'][feedtype]['mediaPlaybackId'] = str(stream['mediaPlaybackId'])
-                        game_rec['feed'][feedtype]['eventId'] = str(stream['eventId'])
-                        game_rec['feed'][feedtype]['callLetters'] = str(stream['callLetters'])
         return game_data
 
     def show_game_data(self, game_date, num_days=1):
