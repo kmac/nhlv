@@ -11,6 +11,8 @@ import urllib.request
 import urllib.error
 import urllib.parse
 
+from datetime import datetime
+
 import mlbam.auth as auth
 import mlbam.util as util
 import mlbam.config as config
@@ -246,7 +248,7 @@ def streamlink(stream_url, media_auth, fetch_filename=None):
             fetch_filename_orig = fetch_filename
             fsplit = os.path.splitext(fetch_filename)
             fetch_filename = '{}-{}{}'.format(fsplit[0], datetime.strftime(datetime.today(), "%H%m"), fsplit[1])
-            log.info('File {} exists, using {} instead'.format(fetch_filename_orig, fetch_filename))
+            LOG.info('File {} exists, using {} instead'.format(fetch_filename_orig, fetch_filename))
         streamlink_cmd.append("--output")
         streamlink_cmd.append(fetch_filename)
     elif video_player is not None and video_player != '':
