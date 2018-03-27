@@ -1,5 +1,5 @@
 """
-
+Models the game data retrieved via JSON.
 """
 import json
 import logging
@@ -166,8 +166,8 @@ class NHLGameData(GameData):
             game_rec['linescore'] = dict()
             game_rec['linescore']['currentPeriod'] = str(game['linescore']['currentPeriod'])
             if 'currentPeriodOrdinal' in game['linescore']:
-                game_rec['linescore']['currentPeriodOrdinal'] = str(game['linescore']['currentPeriodOrdinal']) # : "2nd", "OT", "SO"
-                game_rec['linescore']['currentPeriodTimeRemaining'] = str(game['linescore']['currentPeriodTimeRemaining']) # : "18:58", "Final"
+                game_rec['linescore']['currentPeriodOrdinal'] = str(game['linescore']['currentPeriodOrdinal'])  # : "2nd", "OT", "SO"
+                game_rec['linescore']['currentPeriodTimeRemaining'] = str(game['linescore']['currentPeriodTimeRemaining'])  # : "18:58", "Final"
                 game_rec['linescore']['hasShootout'] = bool(game['linescore']['hasShootout'])
             else:
                 game_rec['linescore']['currentPeriodOrdinal'] = 'Not Started'
@@ -231,7 +231,7 @@ class NHLGameData(GameData):
                             live_game_pks.append(game_pk)
 
                 # print header
-                date_hdr = '{:7}{}'.format('','{}'.format(game_date))
+                date_hdr = '{:7}{}'.format('', '{}'.format(game_date))
                 if show_scores:
                     outl.append("{:64} | {:^5} | {:^9} | {}".format(date_hdr, 'Score', 'State', 'Feeds'))
                     outl.append("{}|{}|{}|{}".format('-' * 65, '-' * 7, '-' * 11, '-' * 14))

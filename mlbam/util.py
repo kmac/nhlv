@@ -1,4 +1,5 @@
 """
+Utility functions
 """
 
 import logging
@@ -61,8 +62,8 @@ def convert_time_to_local(d):
 def log_http(url, request_type=None, headers=None, method_name=None):
     """Helper function to log http requests."""
     msg = ''
-    if method_name is not None: 
-        msg += '{}: '.format(method_name) 
+    if method_name is not None:
+        msg += '{}: '.format(method_name)
     if request_type is not None:
         msg += "HTTP '{}' request: {}".format(request_type.upper(), url)
     else:

@@ -1,4 +1,5 @@
 """
+Streaming functions
 """
 
 import logging
@@ -236,7 +237,7 @@ def streamlink(stream_url, media_auth, fetch_filename=None):
     user_agent_hdr = 'User-Agent=' + config.CONFIG.ua_iphone
 
     video_player = config.CONFIG.parser['video_player']
-    streamlink_cmd = ["streamlink", 
+    streamlink_cmd = ["streamlink",
                       "--http-no-ssl-verify",
                       "--player-no-close",
                       "--http-cookie", auth_cookie_str,
