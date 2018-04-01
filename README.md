@@ -46,7 +46,7 @@ Live Games:                                                      |       |      
 Sample standings output:
 
 ````
-   ========  Division  ========
+   ======  Division  ======     W  OT L   P  Streak
    --- Eastern - Metropolitan ---
 1  x-Washington Capitals        46  7 25  99 [L1]
 2  x-Pittsburgh Penguins        45  6 28  96 [W2]
@@ -240,14 +240,14 @@ Note: the common options have both short and long options. Both are shown in the
 #### Live Games
 
     nhlv --team wpg               # play the live jets game. The feed is chosen based on jets being home vs. away
-    nhltv -t wpg --feed national  # play live game, choose the national feed
-    nhltv -t wpg --feed away      # play live game, choose the away feed. If jets are the home team this would choose
+    nhlv -t wpg --feed national  # play live game, choose the national feed
+    nhlv -t wpg --feed away      # play live game, choose the away feed. If jets are the home team this would choose
                                   # the opponent's feed
 
 #### Archived Games
 
     nhlv --yesterday -t wpg         # play yesterday's jets game
-    nhltv --date 2017-12-27 -t wpg  # watch the jets beat the oilers #spoiler
+    nhlv --date 2017-12-27 -t wpg  # watch the jets beat the oilers #spoiler
 
 #### Highlights
 

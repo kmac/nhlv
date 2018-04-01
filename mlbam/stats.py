@@ -51,10 +51,13 @@ def _match(input_option, full_option, min_chars=2):
 def get_standings(standings_option='all'):
     if _match(standings_option, 'all') or _match(standings_option, 'division'):
         display_standings('byDivision', 'Division')
+        _match(standings_option, 'all') and print('')
     if _match(standings_option, 'all') or _match(standings_option, 'conference'):
         display_standings('byConference', 'Conference', rank_tag='conferenceRank')
+        _match(standings_option, 'all') and print('')
     if _match(standings_option, 'all') or _match(standings_option, 'wildcard'):
         display_standings('wildCard', 'Wildcard', rank_tag='wildCardRank')
+        _match(standings_option, 'all') and print('')
     if _match(standings_option, 'all') or _match(standings_option, 'overall') or _match(standings_option, 'league'):
         display_standings('byLeague', 'League', rank_tag='leagueRank')
 
@@ -76,17 +79,17 @@ def display_standings(standings_type='division', display_title='', rank_tag='div
     json_file = os.path.join(config.CONFIG.dir, 'standings.json')
     with open(json_file, 'w') as f:  # write date to json_file
         f.write(resp.text)
-
-    # with open(json_file) as games_file:
-    #     json_data = json.load(games_file)
     json_data = resp.json()
-
-    # import pprint
-    # pprint.pprint(json_data)
 
     outl = list()
     if display_title != '':
-        outl.append('   ========  {}  ========'.format(display_title))
+        outl.append('{color_on}{name:22}\t{win:^2} {ot:^2} {loss:^2} {point:^3} {streak}{color_off}'
+                    .format(color_on=util.ANSI_CONTROL_CODES['bold'],
+                            name='   ======  {}  ======'.format(display_title),
+                            win='W', ot='OT',
+                            loss='L', point='P',
+                            streak='Streak',
+                            color_off=util.ANSI_CONTROL_CODES['reset']))
     needs_line_hr = False
     for record in json_data['records']:
         if standings_type == record['standingsType']:
