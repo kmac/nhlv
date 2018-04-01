@@ -1,10 +1,20 @@
-nhlv - NHL viewer
-=================
+nhlv - NHL stream viewer
+========================
 
 `nhlv` is a command-line interface to the NHL.tv service. It's primary purpose is to allow you to view game
 streams on linux, including live streams with a valid NHL tv/gamecenter subscription.  It also allows you to
 view game status, results and schedules, stream highlights (recap and condensed games), and filter results
 based on favourite teams.
+
+Features:
+
+* stream or record live or archived NHL games (requires NHL.tv subscription)
+* show completed game highlights (condensed or recap) (no subscription required)
+* display game schedules for given day or number of days
+    - option to show or hide scores
+* filter display based on favourite teams
+* show standings
+
 
 This project is inspired from the MLB baseball [MLBviewer](https://github.com/sdelafond/mlbviewer) project,
 although it differs in that it does not provide an interactive interface (that may be added in future releases). 
