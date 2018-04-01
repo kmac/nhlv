@@ -69,6 +69,9 @@ def main(argv=None):
     parser.add_argument("--password", help="NHL.tv password. Required for live/archived games.")
     parser.add_argument("--use-rogers", help="Use rogers form of NHL.tv authentication")
     parser.add_argument("--fetch", "--record", action="store_true", help="Save stream to file instead of playing")
+    parser.add_argument("--wait", action="store_true",
+                        help=("Wait for game to start (live games only). Will block launching the player until game time. "
+                              "Useful when combined with the --fetch option."))
     parser.add_argument("--standings", nargs='?', const='division', metavar='CATEGORY',
                         help=("[CATEGORY] is one of: '" + ', '.join(stats.STANDINGS_OPTIONS) + "' [default: %(default)s]. "
                               "Display standings. This option will display selected standings category, then exit. "
@@ -144,7 +147,7 @@ def main(argv=None):
         # nothing to stream
         return 0
 
-    return stream.play_stream(game_data, team_to_play, feedtype, args.date, args.fetch, auth.nhl_login)
+    return stream.play_stream(game_data, team_to_play, feedtype, args.date, args.fetch, auth.nhl_login, args.wait)
 
 
 if __name__ == "__main__" or __name__ == "main":

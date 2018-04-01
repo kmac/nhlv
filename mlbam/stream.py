@@ -13,6 +13,7 @@ import urllib.error
 import urllib.parse
 
 from datetime import datetime
+from dateutil import tz
 
 import mlbam.auth as auth
 import mlbam.util as util
@@ -20,6 +21,10 @@ import mlbam.config as config
 
 
 LOG = logging.getLogger(__name__)
+
+
+def _has_game_started(start_time_utc):
+    return start_time_utc.replace(tzinfo=tz.tzutc()) < datetime.now(tz.tzutc())
 
 
 def select_feed_for_team(game_rec, team_code, feedtype=None):
@@ -147,7 +152,7 @@ def save_playlist_to_file(stream_url, media_auth):
     LOG.debug('save_playlist_to_file: {}'.format(playlist))
 
 
-def play_stream(game_data, team_to_play, feedtype, date_str, fetch, login_func):
+def play_stream(game_data, team_to_play, feedtype, date_str, fetch, login_func, wait_for_start):
     game_rec = None
     for game_pk in game_data:
         if team_to_play in (game_data[game_pk]['away_abbrev'], game_data[game_pk]['home_abbrev']):
@@ -172,6 +177,16 @@ def play_stream(game_data, team_to_play, feedtype, date_str, fetch, login_func):
             #            config.CONFIG.parser['password'],
             #            config.CONFIG.parser.getboolean('use_rogers', False))
         LOG.debug('Authorization cookie: {}'.format(auth.get_auth_cookie()))
+
+        if wait_for_start and not _has_game_started(game_rec['nhldate']):
+            LOG.info('Waiting for game to start. Local start time is ' + util.convert_time_to_local(game_rec['nhldate']))
+            print('Use Ctrl-c to quit .', end='', flush=True)
+            count = 0
+            while not _has_game_started(game_rec['nhldate']):
+                time.sleep(10)
+                count += 1
+                if count % 6 == 0:
+                    print('.', end='', flush=True)
 
         media_playback_id, event_id = select_feed_for_team(game_rec, team_to_play, feedtype)
         if media_playback_id is not None:
