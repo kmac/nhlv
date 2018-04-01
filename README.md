@@ -97,6 +97,15 @@ Help is available by running:
 Running `nhlv` without options shows you the status of today's games.
 
 
+#### Usage note: shortening option arguments:
+
+In general, you can shorten the long option names down to something unique. 
+
+For example, rather than having to type `--yesterday` you can shorten it right down to `--y`.
+However, you can one shorten `--tomorrow` down to `--to` since there is also the `--team` option which matches
+up to `--t`.
+
+
 ### Playing a Live or Archived Game
 
 If you pass the `-t/--team TEAM` option, the stream is launched for the given team. By default the local feed
@@ -143,7 +152,7 @@ You don't need login credentials to play highlights.
 You can specify the date to view using one of the following:
 
     -d|--date yyyy-mm-dd    # specific date
-    --yesterday (or --yes)  # shortcut to yesterday
+    --yesterday (or --y)    # shortcut to yesterday
     --tomorrow  (or --tom)  # shortcut to tomorrow
 
 For listing game data only (doesn't make sense for viewing), you can specify a number of days using the
@@ -151,7 +160,28 @@ For listing game data only (doesn't make sense for viewing), you can specify a n
 favourite team(s).
 
 
-### Examples
+### Standings
+
+You can display standings via the `--standings` option. This option displays the given standings category then
+exits.
+
+Standings categories:
+
+* all
+* division
+* conference
+* wildcard
+* league
+* postseason
+* preseason
+
+By default, the division standings are displayed.
+
+You don't have to specify the full standings category, it will match any substring given. e.g. `--standings d`
+will match division or `--standings wild` will match wildcard.
+
+
+## Examples
 
 Note: the common options have both short and long options. Both are shown in these examples.
 
@@ -187,4 +217,12 @@ In these examples the game is save to a .mp4 file in the current directory.
     nhlv --days 7           # show schedule for upcoming week
     nhlv --days 7 --filter  # show schedule for upcoming week, filtered on favourite teams (from config file)
     nhlv --days 7 --filter --favs 'wpg,ott' # show schedule filtered on favourite teams (from option)
+
+#### Standings
+
+    nhlv --standings              # display division standings
+    nhlv --standings conference   # display conference standings
+    nhlv --standings conf         # display conference standings
+    nhlv --standings league       # display overall league standings
+    nhlv --standings all          # display all regular season standings categories
 
