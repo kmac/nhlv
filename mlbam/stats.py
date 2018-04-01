@@ -6,19 +6,22 @@ Help: see https://github.com/dword4/nhlapi#standing
 
 import logging
 import os
-import requests
 import sys
+import time
 
-import mlbam.auth as auth
+from datetime import datetime
+
+import requests
+
 import mlbam.util as util
 import mlbam.config as config
 
 
 LOG = logging.getLogger(__name__)
 
-STANDINGS_URL = 'https://statsapi.web.nhl.com/api/v1/standings'
+STANDINGS_URL = 'https://statsapi.web.nhl.com/api/v1/standings/{standings_type}?date={date}'
 
-# from https://statsapi.web.nhl.com/api/v1/standings'
+# from https://statsapi.web.nhl.com/api/v1/standings?date={date}'
 STANDINGS_TYPES = ('regularSeason', 'wildCard', 'divisionLeaders', 'wildCardWithLeaders',
                    'preseason', 'postseason', 'byDivision', 'byConference', 'byLeague',)
 
@@ -40,7 +43,9 @@ TEAMS_TO_FAVS = {
 
 
 def _is_fav(long_team_name):
-    return TEAMS_TO_FAVS[long_team_name] in util.get_csv_list(config.CONFIG.parser['favs'])
+    if long_team_name in TEAMS_TO_FAVS.keys():
+        return TEAMS_TO_FAVS[long_team_name] in util.get_csv_list(config.CONFIG.parser['favs'])
+    return False
 
 
 def _match(input_option, full_option, min_chars=2):
@@ -48,33 +53,35 @@ def _match(input_option, full_option, min_chars=2):
     return input_option[:num_chars] == full_option[:num_chars]
 
 
-def get_standings(standings_option='all'):
+def get_standings(standings_option='all', date_str=None):
+    if date_str is None:
+        date_str = time.strftime("%Y-%m-%d")
     if _match(standings_option, 'all') or _match(standings_option, 'division'):
-        display_standings('byDivision', 'Division')
+        display_standings('byDivision', 'Division', date_str)
         _match(standings_option, 'all') and print('')
     if _match(standings_option, 'all') or _match(standings_option, 'conference'):
-        display_standings('byConference', 'Conference', rank_tag='conferenceRank')
+        display_standings('byConference', 'Conference', date_str, rank_tag='conferenceRank')
         _match(standings_option, 'all') and print('')
     if _match(standings_option, 'all') or _match(standings_option, 'wildcard'):
-        display_standings('wildCard', 'Wildcard', rank_tag='wildCardRank')
+        display_standings('wildCard', 'Wildcard', date_str, rank_tag='wildCardRank')
         _match(standings_option, 'all') and print('')
     if _match(standings_option, 'all') or _match(standings_option, 'overall') or _match(standings_option, 'league'):
-        display_standings('byLeague', 'League', rank_tag='leagueRank')
+        display_standings('byLeague', 'League', date_str, rank_tag='leagueRank')
 
     if _match(standings_option, 'playoff') or _match(standings_option, 'postseason'):
-        display_standings('postseason', 'Playoffs')
+        display_standings('postseason', 'Playoffs', date_str)
     if _match(standings_option, 'preseason'):
-        display_standings('preseason', 'Preseason')
+        display_standings('preseason', 'Preseason', date_str)
 
 
-def display_standings(standings_type='division', display_title='', rank_tag='divisionRank'):
+def display_standings(standings_type, display_title, date_str, rank_tag='divisionRank'):
     headers = {
         'User-Agent': config.CONFIG.ua_iphone,
         'Connection': 'close'
     }
-    url = '{}/{}'.format(STANDINGS_URL, standings_type)
+    url = STANDINGS_URL.format(standings_type=standings_type, date=date_str)
     util.log_http(url, 'get', headers, sys._getframe().f_code.co_name)
-    resp = requests.get(url, headers=headers, cookies=auth.load_cookies(), verify=config.VERIFY_SSL)
+    resp = requests.get(url, headers=headers, verify=config.VERIFY_SSL)
 
     json_file = os.path.join(config.CONFIG.dir, 'standings.json')
     with open(json_file, 'w') as f:  # write date to json_file
