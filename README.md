@@ -13,7 +13,7 @@ Features:
 * display game schedules for given day or number of days
     - option to show or hide scores
 * filter display based on favourite teams
-* show standings
+* show standings, optionally by any arbitrary date
 
 
 This project is inspired from the MLB baseball [MLBviewer](https://github.com/sdelafond/mlbviewer) project,
@@ -226,7 +226,8 @@ Standings categories:
 * postseason
 * preseason
 
-By default, the division standings are displayed.
+By default, the division standings are displayed for today's date. 
+You can add the `-d/--date yyyy-mm-dd` option to show standings for any given date.
 
 You don't have to specify the full standings category, it will match any substring given. e.g. `--standings d`
 will match division or `--standings wild` will match wildcard.
@@ -277,3 +278,4 @@ In these examples the game is save to a .mp4 file in the current directory.
     nhlv --standings league       # display overall league standings
     nhlv --standings all          # display all regular season standings categories
 
+    nhlv --standings --date 2015-01-01  # display division standings for Jan 1, 2015
