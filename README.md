@@ -9,14 +9,11 @@ based on favourite teams.
 This project is inspired from the MLB baseball [MLBviewer](https://github.com/sdelafond/mlbviewer) project,
 although it differs in that it does not provide an interactive interface (that may be added in future releases). 
 
-For some reason the MLB/NHL does not support viewing live games on linux. There is an excellent kodi
-[plugin](https://github.com/eracknaphobia/plugin.video.nhlgcl) available, but I find Kodi to be a little heavy
-to run from a laptop. This project, like MLBviewer for baseball, allows you to quickly find the game, status,
-or highlights of your favourite team.
+This project allows you to quickly find the game, status, or highlights of your favourite team.
 
-In order to view live or archived games, this package requires a valid NHL.tv subscription requirements. It
-is also subject to local blackout restrictions. However, if you don't have a subscription you can still view
-game recaps or condensed games.
+This package requires a valid NHL.tv subscription In order to view live or archived games. It is also subject
+to local blackout restrictions. However, even if you don't have a subscription you can still view game recaps
+or condensed games.
 
 
 Sample console output:
@@ -91,11 +88,6 @@ Some things you may want to set:
     - others options are: 'worst', '360p', '540p', '720p_alt', '720p', 'best'
 
 
-## TODO
-
-* add `mlbv` to view baseball games. This should be fairly simple since they both use the MLBAM infrastructure.
-
-
 ## Usage
 
 Help is available by running:
@@ -141,7 +133,7 @@ up after a game has ended. To watch the highlight, specify one of those feeds al
 
 Example:
 
-    nhlv --team wpg --f condensed
+    nhlv --team wpg -f condensed
 
 You don't need login credentials to play highlights.
 

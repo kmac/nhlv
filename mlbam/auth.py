@@ -94,13 +94,13 @@ def nhl_login():
         login_data = '{"email":{"address":%s},"type":"email-password","password":{"value":%s}}' % (userid, passwd)
 
     headers = {
-         "Accept": "*/*",
-         "Accept-Encoding": "identity",
-         "Accept-Language": "en-US,en;q=0.8",
-         "Content-Type": "application/json",
-         "Authorization": auth_cookie,
-         "Connection": "keep-alive",
-         "User-Agent": config.CONFIG.ua_pc
+        "Accept": "*/*",
+        "Accept-Encoding": "identity",
+        "Accept-Language": "en-US,en;q=0.8",
+        "Content-Type": "application/json",
+        "Authorization": auth_cookie,
+        "Connection": "keep-alive",
+        "User-Agent": config.CONFIG.ua_pc
     }
 
     util.log_http(url, 'post', headers, sys._getframe().f_code.co_name)
