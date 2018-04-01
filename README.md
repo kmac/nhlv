@@ -33,6 +33,47 @@ Live Games:                                                      |       |      
 
 ````
 
+Sample standings output:
+
+````
+   ========  Division  ========
+   --- Eastern - Metropolitan ---
+1  x-Washington Capitals        46  7 25  99 [L1]
+2  x-Pittsburgh Penguins        45  6 28  96 [W2]
+3  Columbus Blue Jackets        44  6 29  94 [OT1]
+4  Philadelphia Flyers          39 14 25  92 [W1]
+5  New Jersey Devils            41  9 28  91 [W1]
+6  Carolina Hurricanes          35 11 33  81 [L1]
+7  New York Rangers             34  9 36  77 [W1]
+8  New York Islanders           32 10 37  74 [L2]
+   --- Eastern - Atlantic ---
+1  x-Boston Bruins              49 11 17 109 [W2]
+2  x-Tampa Bay Lightning        52  4 22 108 [W1]
+3  x-Toronto Maple Leafs        47  7 25 101 [L1]
+4  Florida Panthers             39  8 30  86 [L1]
+5  Detroit Red Wings            30 11 38  71 [W3]
+6  Montréal Canadiens           28 12 38  68 [L1]
+7  Ottawa Senators              27 11 40  65 [L1]
+8  Buffalo Sabres               25 12 41  62 [W1]
+   --- Western - Central ---
+1  x-Nashville Predators        50 11 17 111 [L1]
+2  x-Winnipeg Jets              48 10 20 106 [W1]
+3  Minnesota Wild               43 10 25  96 [L1]
+4  St. Louis Blues              43  6 29  92 [L1]
+5  Colorado Avalanche           42  8 28  92 [W1]
+6  Dallas Stars                 40  8 31  88 [W1]
+7  Chicago Blackhawks           32 10 37  74 [L1]
+   --- Western - Pacific ---
+1  y-Vegas Golden Knights       50  7 22 107 [W2]
+2  San Jose Sharks              44 10 25  98 [L2]
+3  Los Angeles Kings            43  8 28  94 [OT1]
+4  Anaheim Ducks                40 13 25  93 [W1]
+5  Calgary Flames               36 10 33  82 [W1]
+6  Edmonton Oilers              34  6 39  74 [L3]
+7  Vancouver Canucks            30  9 40  69 [W4]
+8  Arizona Coyotes              28 11 40  67 [W1]
+````
+
 This project incorporates some code modified from the following projects: 
 
 * https://github.com/eracknaphobia/plugin.video.nhlgcl (Kodi plugin)
