@@ -28,6 +28,7 @@ import mlbam.auth as auth
 import mlbam.config as config
 import mlbam.gamedata as gamedata
 import mlbam.stream as stream
+import mlbam.stats as stats
 import mlbam.util as util
 
 
@@ -72,6 +73,7 @@ def main(argv=None):
     parser.add_argument("--password", help="NHL.tv password. Required for live/archived games.")
     parser.add_argument("--use-rogers", help="Use rogers form of NHL.tv authentication")
     parser.add_argument("--fetch", "--record", action="store_true", help="Save stream to file instead of playing")
+    parser.add_argument("--standings", default='division', help="Display standings. Options: " + ','.join(stats.STANDINGS_OPTIONS))
     parser.add_argument("-v", "--verbose", action="store_true", help="Increase output verbosity")
     parser.add_argument("-D", "--debug", action="store_true", help="Turn on debug output")
     args = parser.parse_args()
@@ -97,6 +99,9 @@ def main(argv=None):
         config.CONFIG.parser['username'] = args.username
     if args.password:
         config.CONFIG.parser['password'] = args.password
+    if args.standings:
+        stats.get_standings(args.standings)
+        return 0
     if args.team:
         team_to_play = args.team.lower()
         if team_to_play not in nhl_gamedata.TEAM_CODES:
