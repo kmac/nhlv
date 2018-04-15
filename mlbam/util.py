@@ -3,9 +3,19 @@ Utility functions
 """
 
 import logging
+import os.path
 import sys
+import tempfile
+import time
 
+import requests
+
+from datetime import datetime
+from datetime import timezone
 from dateutil import tz
+
+import mlbam.config as config
+
 
 LOG = None
 
@@ -52,11 +62,48 @@ def die(msg, exit_code=1):
     sys.exit(exit_code)
 
 
+def get_tempdir():
+    """Create a directory for ourselves in the system tempdir."""
+    script_name = os.path.splitext(os.path.basename(sys.argv[0]))[0]
+    tempdir = os.path.join(tempfile.gettempdir(), script_name)
+    if not os.path.exists(tempdir):
+        os.makedirs(tempdir)
+    return tempdir
+
+
+def request_json(url, output_filename=None):
+    """Sends a request expecting a json-formatted response."""
+    LOG.debug('Getting url=%s ...', url)
+    headers = {
+        'User-Agent': config.CONFIG.ua_iphone,
+        'Connection': 'close'
+    }
+    log_http(url, 'get', headers, sys._getframe().f_code.co_name)
+    response = requests.get(url, headers=headers, verify=config.VERIFY_SSL)
+    response.raise_for_status()
+
+    if output_filename is not None and config.SAVE_JSON_FILE:
+        if config.SAVE_JSON_FILE_BY_TIMESTAMP:
+            json_file = os.path.join(get_tempdir(),
+                                     '{}-{}.json'.format(output_filename, time.strftime("%Y-%m-%d-%H%M")))
+        else:
+            json_file = os.path.join(get_tempdir(), '{}.json'.format(output_filename))
+        with open(json_file, 'w') as out:  # write date to json_file
+            out.write(response.text)
+
+    return response.json()
+
+
 def convert_time_to_local(d):
     from_zone = tz.tzutc()
     to_zone = tz.tzlocal()
     utc = d.replace(tzinfo=from_zone)
     return utc.astimezone(to_zone).strftime('%H:%M')
+
+
+def has_reached_time(datetime_val_utc):
+    # return datetime_val_utc.replace(timezone.utc) < datetime.now(timezone.utc)
+    return datetime_val_utc < datetime.now(timezone.utc)
 
 
 def get_csv_list(csv_string):
@@ -78,53 +125,3 @@ def log_http(url, request_type=None, headers=None, method_name=None):
     LOG.debug(msg)
 
 
-ANSI_CONTROL_CODES = {
-    'reset': '\033[0m',
-    'bold': '\033[01m',
-    'disable': '\033[02m',
-    'underline': '\033[04m',
-    'reverse': '\033[07m',
-    'strikethrough': '\033[09m',
-    'invisible': '\033[08m',
-}
-
-FG_COLOURS = {
-    'black':  '\033[30m',
-    'red': '\033[31m',
-    'green': '\033[32m',
-    'orange': '\033[33m',
-    'blue': '\033[34m',
-    'purple': '\033[35m',
-    'cyan': '\033[36m',
-    'lightgrey': '\033[37m',
-    'darkgrey': '\033[90m',
-    'lightred': '\033[91m',
-    'lightgreen': '\033[92m',
-    'yellow': '\033[93m',
-    'lightblue': '\033[94m',
-    'pink': '\033[95m',
-    'lightcyan': '\033[96m',
-}
-
-BG_COLOURS = {
-    'black': '\033[40m',
-    'red': '\033[41m',
-    'green': '\033[42m',
-    'orange': '\033[43m',
-    'blue': '\033[44m',
-    'purple': '\033[45m',
-    'cyan': '\033[46m',
-    'lightgrey': '\033[47m',
-}
-
-
-def fg_ansi_colour(colour_name):
-    if colour_name is not None and colour_name != '' and colour_name in FG_COLOURS:
-        return FG_COLOURS[colour_name]
-    return ''
-
-
-def bg_ansi_colour(colour_name):
-    if colour_name is not None and colour_name != '' and colour_name in BG_COLOURS:
-        return FG_COLOURS[colour_name]
-    return ''

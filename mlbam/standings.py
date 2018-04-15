@@ -9,12 +9,11 @@ import os
 import sys
 import time
 
-from datetime import datetime
-
-import requests
-
+import mlbam.displayutil as displayutil
 import mlbam.util as util
 import mlbam.config as config
+
+from mlbam.displayutil import ANSI
 
 
 LOG = logging.getLogger(__name__)
@@ -75,29 +74,23 @@ def get_standings(standings_option='all', date_str=None):
         display_standings('preseason', 'Preseason', date_str)
 
 
-def display_standings(standings_type, display_title, date_str, rank_tag='divisionRank'):
-    headers = {
-        'User-Agent': config.CONFIG.ua_iphone,
-        'Connection': 'close'
-    }
+def display_standings(standings_type, display_title, date_str, rank_tag='divisionRank', header_tags=('conference', 'division')):
     url = STANDINGS_URL.format(standings_type=standings_type, date=date_str)
-    util.log_http(url, 'get', headers, sys._getframe().f_code.co_name)
-    resp = requests.get(url, headers=headers, verify=config.VERIFY_SSL)
+    json_data = util.request_json(url, 'standings')
 
-    json_file = os.path.join(config.CONFIG.dir, 'standings.json')
-    with open(json_file, 'w') as f:  # write date to json_file
-        f.write(resp.text)
-    json_data = resp.json()
+    border = displayutil.Border(use_unicode=config.UNICODE)
 
     outl = list()
     if display_title != '':
         outl.append('{color_on}{name:22}\t{win:^2} {ot:^2} {loss:^2} {point:^3} {streak}{color_off}'
-                    .format(color_on=util.ANSI_CONTROL_CODES['bold'],
-                            name='   ======  {}  ======'.format(display_title),
+                    .format(color_on=border.border_color,
+                            name='   {thickborder} {title} {thickborder}'.format(title=display_title,
+                                                                                 thickborder=border.doubledash * int((29-len(display_title))/2 - 1)),
                             win='W', ot='OT',
                             loss='L', point='P',
                             streak='Streak',
-                            color_off=util.ANSI_CONTROL_CODES['reset']))
+                            color_off=ANSI.reset()))
+
     needs_line_hr = False
     for record in json_data['records']:
         if standings_type == record['standingsType']:
@@ -105,14 +98,18 @@ def display_standings(standings_type, display_title, date_str, rank_tag='divisio
                 pass
                 # outl.append('-' * 10)
             header = ''
-            for tag in ('conference', 'division'):
+            for tag in header_tags:
                 if tag in record:
                     if 'name' in record[tag]:
                         header = _add_to_header(header, record[tag]['name'])
                     else:
                         header = _add_to_header(header, record[tag])
             if header:
-                header = '--- ' + header + ' ---'
+                header = '{color_on}{b1} {title} {b2}{color_off}'.format(color_on=border.border_color,
+                                                                         title=header,
+                                                                         b1=border.dash*3,
+                                                                         b2=border.dash*(41-len(header)),
+                                                                         color_off=ANSI.reset())
                 outl.append('   {}'.format(header))
                 needs_line_hr = True
         else:
@@ -128,8 +125,8 @@ def display_standings(standings_type, display_title, date_str, rank_tag='divisio
             color_off = ''
             if _is_fav(teamrec['team']['name']):
                 if config.CONFIG.parser['fav_colour'] != '':
-                    color_on = util.fg_ansi_colour(config.CONFIG.parser['fav_colour'])
-                    color_off = util.ANSI_CONTROL_CODES['reset']
+                    color_on = ANSI.fg(config.CONFIG.parser['fav_colour'])
+                    color_off = ANSI.reset()
             outl.append('{color_on}{rank:2} {clinch}{name:22}\t{win:2} {ot:2} {loss:2} {point:3} [{streak}]{color_off}'
                         .format(color_on=color_on, rank=rank, clinch=clinch, name=teamrec['team']['name'],
                                 win=teamrec['leagueRecord']['wins'], ot=teamrec['leagueRecord']['ot'],
