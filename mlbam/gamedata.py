@@ -276,21 +276,20 @@ class GameDatePresenter:
         else:
             outl.append("{:64} {pipe} {:^9} {pipe} {}".format(date_hdr, 'State', 'Feeds', pipe=border.pipe))
             outl.append("{c_on}{}{pipe}{}{pipe}{}{c_off}"
-                        .format(border.thickdash * 64, border.thickdash * 9, border.thickdash * 12,
+                        .format(border.thickdash * 65, border.thickdash * 11, border.thickdash * 14,
                                 pipe=border.junction, c_on=border.border_color, c_off=border.color_off))
 
-        game_count = 0
+        displayed_game_count = 0
         for game_pk in game_records:
-            game_count += 1
             if apply_filter(game_records[game_pk], filter) is not None:
-                outl.extend(self._display_game_details(game_pk, game_records[game_pk],
-                                                      game_count % 2, game_count == len(game_records)))
+                displayed_game_count += 1
+                outl.extend(self._display_game_details(game_pk, game_records[game_pk], displayed_game_count))
                 print_outl = True
 
         if print_outl:
             print('\n'.join(outl))
 
-    def _display_game_details(self, game_pk, game_rec, odd_even, is_last):
+    def _display_game_details(self, game_pk, game_rec, displayed_game_count):
         outl = list()
         border = displayutil.Border(use_unicode=config.UNICODE)
         color_on = ''
@@ -337,9 +336,9 @@ class GameDatePresenter:
                                 gsc_on=game_state_color_on, gsc_off=game_state_color_off, feeds=self.__get_feeds_for_display(game_rec),
                                 pipe=border.pipe, c_on=color_on, c_off=color_off))
         else:
-            outl.append("{c_on}{gameinfo:<64}{c_off} | {c_on}{state:^9}{c_off} | {c_on}{feeds}{c_off}"
+            outl.append("{c_on}{gameinfo:<64}{c_off} {pipe} {c_on}{state:^9}{c_off} {pipe} {c_on}{feeds}{c_off}"
                         .format(gameinfo=game_info_str, state=game_state, feeds=self.__get_feeds_for_display(game_rec),
-                                c_on=color_on, c_off=color_off))
+                                pipe=border.pipe, c_on=color_on, c_off=color_off))
         if config.CONFIG.parser.getboolean('debug') and config.CONFIG.parser.getboolean('verbose'):
             for feedtype in game_rec['feed']:
                 outl.append('    {}: {}  [game_pk:{}, mediaPlaybackId:{}]'.format(feedtype,

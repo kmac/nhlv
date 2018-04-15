@@ -181,8 +181,12 @@ def main(argv=None):
     if team_to_play is None and not args.recaps:
         # nothing to play; display the games
         presenter = gamedata.GameDatePresenter()
+        displayed_count = 0
         for game_date, game_records in game_day_tuple_list:
             presenter.display_game_data(game_date, game_records, args.filter)
+            displayed_count += 1
+            if displayed_count < len(game_day_tuple_list):
+                print('')
         return 0
 
     # from this point we only care about first day in list
