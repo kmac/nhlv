@@ -26,15 +26,16 @@ TEAM_CODES = ('ana', 'ari', 'bos', 'buf', 'car', 'cbj', 'cgy', 'chi', 'col', 'da
               'min', 'mtl', 'njd', 'nsh', 'nyi', 'nyr', 'ott', 'phi', 'pit', 'sjs', 'stl', 'tbl', 'tor', 'van',
               'vgk', 'wpg', 'wsh')
 
+
 FILTERS = {
     'favs': '',  # is filled out by config parser
-    'east': '',
-    'met': '',
-    'atl': '',
-    'west': '',
-    'central': '',
-    'pacific': '',
+    'metropolitan': 'car,cbj,njd,nyi,nyr,phi,pit,wsh',
+    'atlantic': 'bos,buf,det,fla,mtl,ott,tbl,tor',
+    'central': 'chi,col,dal,min,nsh,stl,wpg',
+    'pacific': 'ana,ari,cgy,edm,lak,sjs,van,vgk'
 }
+FILTERS['east'] = '{},{}'.format(FILTERS['metropolitan'], FILTERS['atlantic'])
+FILTERS['west'] = '{},{}'.format(FILTERS['central'], FILTERS['pacific'])
 
 # this map is used to transform the statsweb feed name to something shorter
 FEEDTYPE_MAP = {
@@ -68,16 +69,26 @@ def is_fav(game_rec):
     return False
 
 
-def filter_favs(game_rec):
-    """Returns the game_rec if the game matches the favourites, or if no filtering is active."""
-    if not config.CONFIG.parser.getboolean('filter', 'false'):
+def apply_filter(game_rec, arg_filter):
+    """Returns the game_rec if the game matches the filter, or if no filtering is active.
+    """
+    if not arg_filter:
         return game_rec
-    if config.CONFIG.parser['favs'] is None or config.CONFIG.parser['favs'] == '':
-        return game_rec
-    for fav in config.CONFIG.parser['favs'].split(','):
-        fav = fav.strip()
-        if fav in (game_rec['away_abbrev'], game_rec['home_abbrev']):
+    if arg_filter == 'favs':
+        arg_filter = config.CONFIG.parser['favs']
+    # elif arg_filter in FILTERS:
+    #     arg_filter = FILTERS[arg_filter]
+    else:
+        for filter_name in FILTERS.keys():
+            if filter_name.startswith(arg_filter):
+                arg_filter = FILTERS[filter_name]
+
+    # apply the filter
+    for team in util.get_csv_list(arg_filter):
+        if team in (game_rec['away_abbrev'], game_rec['home_abbrev']):
             return game_rec
+
+    # no match
     return None
 
 
@@ -96,59 +107,31 @@ def convert_to_long_feedtype(feed):
     return feed
 
 
-def apply_filter(game_rec, filter):
-    """Returns the game_rec if the game matches the filter, or if no filtering is active.
-    """
-    if filter == 'favs':
-        filter = config.CONFIG.parser['favs']
-    elif filter in FILTERS:
-        filter = FILTERS[filter]
-    elif not filter:
-        return game_rec
-
-    # apply the filter
-    for team in util.get_csv_list(filter):
-        if team in (game_rec['away_abbrev'], game_rec['home_abbrev']):
-            return game_rec
-
-    # no match
-    return None
-
-
 class GameDataRetriever:
     """Retrieves and parses game data from statsapi.mlb.com"""
 
     @staticmethod
-    def _get_games_by_date(date_str=None, overwrite_json=True):
+    def _get_games_by_date(date_str=None):
         if date_str is None:
             date_str = time.strftime("%Y-%m-%d")
         if config.SAVE_JSON_FILE_BY_TIMESTAMP:
             json_file = os.path.join(config.CONFIG.dir, 'gamedata-{}.json'.format(time.strftime("%Y-%m-%d-%H%M")))
         else:
             json_file = os.path.join(config.CONFIG.dir, 'gamedata.json')
-        if overwrite_json or not os.path.exists(json_file):
-            LOG.debug('Getting game data...')
-            # query nhl.com for today's schedule
-            headers = {
-                'User-Agent': config.CONFIG.ua_iphone,
-                'Connection': 'close'
-            }
-            url = ('{0}/schedule?&startDate={1}&endDate={1}&expand='
-                   'schedule.teams,schedule.linescore,schedule.game.content.media.epg').format(config.CONFIG.api_url,
-                                                                                               date_str)
-            util.log_http(url, 'get', headers, sys._getframe().f_code.co_name)
-            r = requests.get(url, headers=headers, cookies=auth.load_cookies(), verify=config.VERIFY_SSL)
+        LOG.debug('Getting game data...')
 
-            with open(json_file, 'w') as f:  # write date to json_file
-                f.write(r.text)
-
-        with open(json_file) as games_file:
-            json_data = json.load(games_file)
+        url = ('{0}/schedule?&startDate={1}&endDate={1}&expand='
+               'schedule.teams,schedule.linescore,schedule.game.content.media.epg').format(config.CONFIG.api_url,
+                                                                                           date_str)
+        json_data = util.request_json(url, 'gamedata')
 
         game_records = dict()  # we return this dictionary
 
+        if json_data is None:
+            LOG.error("No JSON data returned for %s", date_str)
+            return None
         if json_data['dates'] is None or len(json_data['dates']) < 1:
-            LOG.debug("_get_games_by_date: no game data for {}".format(date_str))
+            LOG.debug("_get_games_by_date: no game data for %s", date_str)
             return None
 
         for game in json_data['dates'][0]['games']:
@@ -252,7 +235,7 @@ class GameDatePresenter:
         return '{:7} {}'.format('/'.join(non_highlight_feeds), '/'.join(highlight_feeds))
 
 
-    def display_game_data(self, game_date, game_records, filter):
+    def display_game_data(self, game_date, game_records, arg_filter):
         show_scores = config.CONFIG.parser.getboolean('scores')
         show_scores = config.CONFIG.parser.getboolean('scores')
         border = displayutil.Border(use_unicode=config.UNICODE)
@@ -281,7 +264,7 @@ class GameDatePresenter:
 
         displayed_game_count = 0
         for game_pk in game_records:
-            if apply_filter(game_records[game_pk], filter) is not None:
+            if apply_filter(game_records[game_pk], arg_filter) is not None:
                 displayed_game_count += 1
                 outl.extend(self._display_game_details(game_pk, game_records[game_pk], displayed_game_count))
                 print_outl = True
