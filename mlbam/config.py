@@ -33,7 +33,7 @@ class Config:
             'password': '',
             'use_rogers': 'false',
             'favs': '',
-            'fav_colour': 'cyan',
+            'fav_colour': 'blue',
             'scores': 'true',
             'use_short_feeds': 'true',
             'filter': '',
