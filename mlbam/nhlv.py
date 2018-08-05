@@ -83,6 +83,7 @@ def main(argv=None):
     parser.add_argument("-r", "--resolution", choices=config.BANDWIDTH_CHOICES,
                         help="Stream resolution for streamlink (overrides settting in config file)")
     parser.add_argument("--from-start", action="store_true", help="Start live/archive stream from beginning")
+    parser.add_argument("--offset", help="Amount of time (HH:MM:SS) to skip from the beginning of the stream. For live streams, this is a negative offset from the end of the stream (rewind).")
     parser.add_argument("--favs", help=argparse.SUPPRESS)
                         # help=("Favourite teams, a comma-separated list of favourite teams " "(normally specified in config file)"))
     parser.add_argument("--filter", nargs='?', const='favs', metavar='filtername|teams',
@@ -212,7 +213,7 @@ def main(argv=None):
                     LOG.info("Playing recap for %s at %s", game_rec['away_abbrev'].upper(), game_rec['home_abbrev'].upper())
                     stream_game_rec = stream.get_game_rec(game_data, game_rec['home_abbrev'])
                     stream.play_stream(stream_game_rec, game_rec['home_abbrev'], 'recap', game_date,
-                                       args.fetch, None, None, is_multi_highlight=True)
+                                       args.fetch, None, None, offset=args.offset, is_multi_highlight=True)
                 else:
                     LOG.info("No recap available for %s at %s", game_rec['away_abbrev'].upper(), game_rec['home_abbrev'].upper())
         return 0
@@ -240,7 +241,7 @@ def main(argv=None):
 
         game_rec = stream.get_game_rec(game_data, team_to_play)
 
-    return stream.play_stream(game_rec, team_to_play, feedtype, args.date, args.fetch, auth.nhl_login, args.from_start)
+    return stream.play_stream(game_rec, team_to_play, feedtype, args.date, args.fetch, auth.nhl_login, args.from_start, offset=args.offset)
 
 
 if __name__ == "__main__" or __name__ == "main":

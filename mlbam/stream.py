@@ -167,7 +167,7 @@ def get_game_rec(game_data, team_to_play):
     return game_rec
 
 
-def play_stream(game_rec, team_to_play, feedtype, date_str, fetch, login_func, from_start, is_multi_highlight=False):
+def play_stream(game_rec, team_to_play, feedtype, date_str, fetch, login_func, from_start, offset=None, is_multi_highlight=False):
     if feedtype is not None and feedtype in config.HIGHLIGHT_FEEDTYPES:
         # handle condensed/recap
         playback_url = find_highlight_url_for_team(game_rec, feedtype)
@@ -189,7 +189,6 @@ def play_stream(game_rec, team_to_play, feedtype, date_str, fetch, login_func, f
         if media_playback_id is not None:
             stream_url, media_auth = fetch_stream(game_rec['game_pk'], media_playback_id, event_id)
             if stream_url is not None:
-                offset = None
                 if config.SAVE_PLAYLIST_FILE:
                     save_playlist_to_file(stream_url, media_auth)
                 streamlink(stream_url, media_auth, get_fetch_filename(date_str, game_rec, feedtype, fetch), from_start, offset)
