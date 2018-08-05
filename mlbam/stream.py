@@ -167,7 +167,7 @@ def get_game_rec(game_data, team_to_play):
     return game_rec
 
 
-def play_stream(game_rec, team_to_play, feedtype, date_str, fetch, login_func, from_start, offset=None, is_multi_highlight=False):
+def play_stream(game_rec, team_to_play, feedtype, date_str, fetch, login_func, from_start, offset=None, duration=None, is_multi_highlight=False):
     if feedtype is not None and feedtype in config.HIGHLIGHT_FEEDTYPES:
         # handle condensed/recap
         playback_url = find_highlight_url_for_team(game_rec, feedtype)
@@ -191,7 +191,7 @@ def play_stream(game_rec, team_to_play, feedtype, date_str, fetch, login_func, f
             if stream_url is not None:
                 if config.SAVE_PLAYLIST_FILE:
                     save_playlist_to_file(stream_url, media_auth)
-                streamlink(stream_url, media_auth, get_fetch_filename(date_str, game_rec, feedtype, fetch), from_start, offset)
+                streamlink(stream_url, media_auth, get_fetch_filename(date_str, game_rec, feedtype, fetch), from_start, offset, duration)
             else:
                 LOG.error("No stream URL found")
         else:
@@ -249,7 +249,7 @@ def streamlink_highlight(playback_url, fetch_filename, is_multi_highlight=False)
     subprocess.run(streamlink_cmd)
 
 
-def streamlink(stream_url, media_auth, fetch_filename=None, from_start=False, offset=None):
+def streamlink(stream_url, media_auth, fetch_filename=None, from_start=False, offset=None, duration=None):
     LOG.debug("Stream url: " + stream_url)
     auth_cookie_str = "Authorization=" + auth.get_auth_cookie()
     media_auth_cookie_str = media_auth
@@ -269,6 +269,11 @@ def streamlink(stream_url, media_auth, fetch_filename=None, from_start=False, of
         streamlink_cmd.append("--hls-start-offset")
         streamlink_cmd.append(offset)
         LOG.debug("Using --hls-start-offset %s", offset)
+
+    if duration:
+        streamlink_cmd.append("--hls-duration")
+        streamlink_cmd.append(duration)
+        LOG.debug("Using --hls-duration %s", duration)
 
     if fetch_filename is not None:
         if os.path.exists(fetch_filename):
