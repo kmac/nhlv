@@ -261,7 +261,9 @@ def streamlink(stream_url, media_auth, fetch_filename=None, from_start=False, of
                       "--player-no-close",
                       "--http-cookie", auth_cookie_str,
                       "--http-cookie", media_auth_cookie_str,
-                      "--http-header", user_agent_hdr]
+                      "--http-header", user_agent_hdr,
+                      "--hls-timeout", "600.0",
+                      "--hls-segment-timeout", "60.0"]
     if from_start:
         streamlink_cmd.append("--hls-live-restart")
         LOG.info("Starting from beginning [--hls-live-restart]")
@@ -280,7 +282,7 @@ def streamlink(stream_url, media_auth, fetch_filename=None, from_start=False, of
             # don't overwrite existing file - use a new name based on hour,minute
             fetch_filename_orig = fetch_filename
             fsplit = os.path.splitext(fetch_filename)
-            fetch_filename = '{}-{}{}'.format(fsplit[0], datetime.strftime(datetime.today(), "%H%m"), fsplit[1])
+            fetch_filename = '{}-{}{}'.format(fsplit[0], datetime.strftime(datetime.today(), "%H%M"), fsplit[1])
             LOG.info('File %s exists, using %s instead', fetch_filename_orig, fetch_filename)
         streamlink_cmd.append("--output")
         streamlink_cmd.append(fetch_filename)
