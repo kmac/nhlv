@@ -28,7 +28,7 @@ import mlbam.auth as auth
 import mlbam.nhlconfig as nhlconfig
 import mlbam.gamedata as gamedata
 import mlbam.standings as standings
-import mlbam.stream as stream
+import mlbam.nhlstream as nhlstream
 
 
 LOG = None  # initialized in init_logging
@@ -212,14 +212,14 @@ def main(argv=None):
             if game_rec and (game_rec['home_abbrev'] in recap_teams or game_rec['away_abbrev'] in recap_teams):
                 if 'recap' in game_rec['feed']:
                     LOG.info("Playing recap for %s at %s", game_rec['away_abbrev'].upper(), game_rec['home_abbrev'].upper())
-                    stream_game_rec = stream.get_game_rec(game_data, game_rec['home_abbrev'])
-                    stream.play_stream(stream_game_rec, game_rec['home_abbrev'], 'recap', game_date,
-                                       args.fetch, None, None, offset=args.offset, duration=args.duration, is_multi_highlight=True)
+                    stream_game_rec = nhlstream.get_game_rec(game_data, game_rec['home_abbrev'])
+                    nhlstream.play_stream(stream_game_rec, game_rec['home_abbrev'], 'recap', game_date,
+                                          args.fetch, None, None, offset=args.offset, duration=args.duration, is_multi_highlight=True)
                 else:
                     LOG.info("No recap available for %s at %s", game_rec['away_abbrev'].upper(), game_rec['home_abbrev'].upper())
         return 0
 
-    game_rec = stream.get_game_rec(game_data, team_to_play)
+    game_rec = nhlstream.get_game_rec(game_data, team_to_play)
 
     if args.wait and not util.has_reached_time(game_rec['nhldate']):
         LOG.info('Waiting for game to start. Local start time is %s', util.convert_time_to_local(game_rec['nhldate']))
@@ -240,9 +240,9 @@ def main(argv=None):
             LOG.error('Unexpected error: no game data found after refresh on wait')
             return 0
 
-        game_rec = stream.get_game_rec(game_data, team_to_play)
+        game_rec = nhlstream.get_game_rec(game_data, team_to_play)
 
-    return stream.play_stream(game_rec, team_to_play, feedtype, args.date, args.fetch, auth.nhl_login, args.from_start, offset=args.offset, duration=args.duration)
+    return nhlstream.play_stream(game_rec, team_to_play, feedtype, args.date, args.fetch, auth.nhl_login, args.from_start, offset=args.offset, duration=args.duration)
 
 
 if __name__ == "__main__" or __name__ == "main":

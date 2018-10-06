@@ -20,13 +20,10 @@ from dateutil import parser
 import mlbam.auth as auth
 import mlbam.common.util as util
 import mlbam.common.config as config
+import mlbam.common.stream as stream
 
 
 LOG = logging.getLogger(__name__)
-
-
-def _has_game_started(start_time_utc):
-    return start_time_utc.replace(timezone.utc) < datetime.now(timezone.utc)
 
 
 def select_feed_for_team(game_rec, team_code, feedtype=None):
@@ -173,7 +170,10 @@ def play_stream(game_rec, team_to_play, feedtype, date_str, fetch, login_func, f
         playback_url = find_highlight_url_for_team(game_rec, feedtype)
         if playback_url is None:
             util.die("No playback url for feed '{}'".format(feedtype))
-        play_highlight(playback_url, get_fetch_filename(date_str, game_rec, feedtype, fetch), is_multi_highlight)
+        stream.play_highlight(playback_url,
+                              stream.get_fetch_filename(date_str, game_rec['home_abbrev'],
+                                                        game_rec['away_abbrev'], feedtype, fetch),
+                              is_multi_highlight)
     else:
         # handle full game (live or archive)
         # this is the only feature requiring an authenticated session
@@ -191,62 +191,15 @@ def play_stream(game_rec, team_to_play, feedtype, date_str, fetch, login_func, f
             if stream_url is not None:
                 if config.SAVE_PLAYLIST_FILE:
                     save_playlist_to_file(stream_url, media_auth)
-                streamlink(stream_url, media_auth, get_fetch_filename(date_str, game_rec, feedtype, fetch), from_start, offset, duration)
+                streamlink(stream_url, media_auth,
+                           stream.get_fetch_filename(date_str, game_rec['home_abbrev'],
+                                                     game_rec['away_abbrev'], feedtype, fetch),
+                           from_start, offset, duration)
             else:
                 LOG.error("No stream URL found")
         else:
             LOG.info("No game stream found for %s", team_to_play)
     return 0
-
-
-def get_fetch_filename(date_str, game_rec, feedtype, fetch):
-    if fetch:
-        suffix = 'ts'
-        if feedtype is None:
-            return '{}-{}-{}.{}'.format(date_str, game_rec['away_abbrev'], game_rec['home_abbrev'], suffix)
-        else:
-            if feedtype in ('recap', 'condensed', ):
-                suffix = 'mp4'
-            return '{}-{}-{}-{}.{}'.format(date_str, game_rec['away_abbrev'], game_rec['home_abbrev'], feedtype, suffix)
-    return None
-
-
-def play_highlight(playback_url, fetch_filename, is_multi_highlight=False):
-    video_player = config.CONFIG.parser['video_player']
-    if (fetch_filename is None or fetch_filename != '') \
-            and not config.CONFIG.parser.getboolean('streamlink_highlights', True):
-        cmd = [video_player, playback_url]
-        LOG.info('Playing highlight: %s', str(cmd))
-        subprocess.run(cmd)
-    else:
-        streamlink_highlight(playback_url, fetch_filename, is_multi_highlight)
-
-
-def streamlink_highlight(playback_url, fetch_filename, is_multi_highlight=False):
-    video_player = config.CONFIG.parser['video_player']
-    # the --playe-no-close is required so it doesn't shut things down 
-    # prematurely after the stream is fully fetched
-    streamlink_cmd = ["streamlink", "--player-no-close", ]
-    if fetch_filename is not None:
-        streamlink_cmd.append("--output")
-        streamlink_cmd.append(fetch_filename)
-    elif video_player is not None and video_player != '':
-        LOG.debug('Using video_player: {}'.format(video_player))
-        if is_multi_highlight:
-            if video_player == 'mpv':
-                video_player += " --keep-open=no"
-        streamlink_cmd.append("--player")
-        streamlink_cmd.append(video_player)
-    if config.CONFIG.parser.getboolean('streamlink_passthrough_highlights', True):
-        streamlink_cmd.append("--player-passthrough=hls")
-    if config.VERBOSE:
-        streamlink_cmd.append("--loglevel")
-        streamlink_cmd.append("debug")
-    streamlink_cmd.append(playback_url)
-    streamlink_cmd.append(config.CONFIG.parser.get('resolution', 'best'))
-
-    LOG.info('Playing highlight via streamlink: ' + str(streamlink_cmd))
-    subprocess.run(streamlink_cmd)
 
 
 def streamlink(stream_url, media_auth, fetch_filename=None, from_start=False, offset=None, duration=None):
@@ -302,8 +255,3 @@ def streamlink(stream_url, media_auth, fetch_filename=None, from_start=False, of
     subprocess.run(streamlink_cmd)
 
     return streamlink_cmd
-
-
-def play_audio(stream_url):
-    # http://hlsaudio-akc.med2.med.nhl.com/ls04/nhl/2017/12/31/NHL_GAME_AUDIO_TORVGK_M2_VISIT_20171231_1513799214035/master_radio.m3u8
-    pass
