@@ -22,12 +22,13 @@ import time
 from datetime import datetime
 from datetime import timedelta
 
+import mlbam.common.config as config
+import mlbam.common.util as util
 import mlbam.auth as auth
-import mlbam.config as config
+import mlbam.nhlconfig as nhlconfig
 import mlbam.gamedata as gamedata
 import mlbam.standings as standings
 import mlbam.stream as stream
-import mlbam.util as util
 
 
 LOG = None  # initialized in init_logging
@@ -85,8 +86,7 @@ def main(argv=None):
     parser.add_argument("--from-start", action="store_true", help="Start live/archive stream from beginning")
     parser.add_argument("--offset", help="Amount of time (HH:MM:SS) to skip from the beginning of the stream. For live streams, this is a negative offset from the end of the stream (rewind)")
     parser.add_argument("--duration", help="Limit the playback duration, useful for watching segments of a stream")
-    parser.add_argument("--favs", help=argparse.SUPPRESS)
-                        # help=("Favourite teams, a comma-separated list of favourite teams " "(normally specified in config file)"))
+    parser.add_argument("--favs", help=argparse.SUPPRESS)  # help=("Favourite teams, a comma-separated list of favourite teams " "(normally specified in config file)"))
     parser.add_argument("--filter", nargs='?', const='favs', metavar='filtername|teams',
                         help=("Filter output. Either a filter name (see --list-filters) or a comma-separated "
                               "list of team codes, eg: 'tor.bos,wsh'. Default: favs"))
@@ -95,8 +95,8 @@ def main(argv=None):
                         help="Show scores (default off; overrides config file)")
     parser.add_argument("-n", "--no-scores", action="store_true",
                         help="Do not show scores (default on; overrides config file)")
-    parser.add_argument("--username", help=argparse.SUPPRESS) # help="NHL.tv username. Required for live/archived games.")
-    parser.add_argument("--password", help=argparse.SUPPRESS) # help="NHL.tv password. Required for live/archived games.")
+    parser.add_argument("--username", help=argparse.SUPPRESS)  # help="NHL.tv username. Required for live/archived games.")
+    parser.add_argument("--password", help=argparse.SUPPRESS)  # help="NHL.tv password. Required for live/archived games.")
     parser.add_argument("--use-rogers", help="Use rogers form of NHL.tv authentication")
     parser.add_argument("--fetch", "--record", action="store_true", help="Save stream to file instead of playing")
     parser.add_argument("--wait", action="store_true",
@@ -112,8 +112,8 @@ def main(argv=None):
     parser.add_argument("--recaps", nargs='?', const='all', metavar='FILTER',
                         help=("Play recaps for given teams. "
                               "[FILTER] is an optional filter as per --filter option"))
-    parser.add_argument("-v", "--verbose", action="store_true", help=argparse.SUPPRESS) # help="Increase output verbosity")
-    parser.add_argument("-D", "--debug", action="store_true", help=argparse.SUPPRESS)   # help="Turn on debug output")
+    parser.add_argument("-v", "--verbose", action="store_true", help=argparse.SUPPRESS)  # help="Increase output verbosity")
+    parser.add_argument("-D", "--debug", action="store_true", help=argparse.SUPPRESS)    # help="Turn on debug output")
     args = parser.parse_args()
 
     if args.usage:
@@ -123,10 +123,10 @@ def main(argv=None):
     feedtype = None
 
     if args.init:
-        return config.NHLConfig.generate_config(args.username, args.password)
+        return config.Config.generate_config(args.username, args.password, "NHL.tv")
 
     # get our config
-    config.CONFIG = config.NHLConfig()
+    config.CONFIG = config.Config(nhlconfig.DEFAULTS, args)
 
     # append log files if DEBUG is set (from top of file)
     util.init_logging(os.path.join(config.CONFIG.dir,

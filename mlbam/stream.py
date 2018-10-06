@@ -262,8 +262,8 @@ def streamlink(stream_url, media_auth, fetch_filename=None, from_start=False, of
                       "--http-cookie", auth_cookie_str,
                       "--http-cookie", media_auth_cookie_str,
                       "--http-header", user_agent_hdr,
-                      "--hls-timeout", "600.0",
-                      "--hls-segment-timeout", "60.0"]
+                      "--hls-timeout", "600",         # default: 60
+                      "--hls-segment-timeout", "60"]  # default: 10
     if from_start:
         streamlink_cmd.append("--hls-live-restart")
         LOG.info("Starting from beginning [--hls-live-restart]")

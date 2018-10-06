@@ -11,10 +11,10 @@ import time
 from datetime import datetime
 from datetime import timedelta
 
+import mlbam.common.config as config
+import mlbam.common.util as util
 import mlbam.auth as auth
-import mlbam.config as config
 import mlbam.displayutil as displayutil
-import mlbam.util as util
 
 from mlbam.displayutil import ANSI
 
