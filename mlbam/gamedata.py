@@ -11,12 +11,12 @@ import time
 from datetime import datetime
 from datetime import timedelta
 
+import mlbam.auth as auth
 import mlbam.common.config as config
 import mlbam.common.util as util
-import mlbam.auth as auth
-import mlbam.displayutil as displayutil
+import mlbam.common.displayutil as displayutil
 
-from mlbam.displayutil import ANSI
+from mlbam.common.displayutil import ANSI
 
 
 LOG = logging.getLogger(__name__)
@@ -121,7 +121,7 @@ class GameDataRetriever:
         LOG.debug('Getting game data...')
 
         url = ('{0}/schedule?&startDate={1}&endDate={1}&expand='
-               'schedule.teams,schedule.linescore,schedule.game.content.media.epg').format(config.CONFIG.api_url,
+               'schedule.teams,schedule.linescore,schedule.game.content.media.epg').format(config.CONFIG.parser['api_url'],
                                                                                            date_str)
         json_data = util.request_json(url, 'gamedata')
 

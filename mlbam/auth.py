@@ -9,8 +9,8 @@ import time
 from datetime import datetime
 from datetime import timedelta
 
-import mlbam.util as util
-import mlbam.config as config
+import mlbam.common.util as util
+import mlbam.common.config as config
 
 
 LOG = logging.getLogger(__name__)

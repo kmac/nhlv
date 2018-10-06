@@ -18,8 +18,8 @@ from dateutil import tz
 from dateutil import parser
 
 import mlbam.auth as auth
-import mlbam.util as util
-import mlbam.config as config
+import mlbam.common.util as util
+import mlbam.common.config as config
 
 
 LOG = logging.getLogger(__name__)
