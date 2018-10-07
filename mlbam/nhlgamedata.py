@@ -13,6 +13,7 @@ from datetime import timedelta
 
 import mlbam.auth as auth
 import mlbam.common.config as config
+import mlbam.common.gamedata as gamedata
 import mlbam.common.util as util
 import mlbam.common.displayutil as displayutil
 
@@ -48,63 +49,6 @@ FEEDTYPE_MAP = {
     'audio-away': 'aud-a',
     'audio-home': 'aud-h',
 }
-
-
-def get_feedtype_keystring():
-    reverse_list = list()
-    for longkey in FEEDTYPE_MAP:
-        reverse_list.append('{}:{}'.format(FEEDTYPE_MAP[longkey], longkey))
-    return ', '.join(reverse_list)
-
-
-def is_fav(game_rec):
-    if 'favourite' in game_rec:
-        return game_rec['favourite']
-    if config.CONFIG.parser['favs'] is None or config.CONFIG.parser['favs'] == '':
-        return False
-    for fav in config.CONFIG.parser['favs'].split(','):
-        fav = fav.strip()
-        if fav in (game_rec['away']['abbrev'], game_rec['home']['abbrev']):
-            return True
-    return False
-
-
-def apply_filter(game_rec, arg_filter):
-    """Returns the game_rec if the game matches the filter, or if no filtering is active.
-    """
-    if not arg_filter:
-        return game_rec
-    if arg_filter == 'favs':
-        arg_filter = config.CONFIG.parser['favs']
-    # elif arg_filter in FILTERS:
-    #     arg_filter = FILTERS[arg_filter]
-    else:
-        for filter_name in FILTERS.keys():
-            if filter_name.startswith(arg_filter):
-                arg_filter = FILTERS[filter_name]
-
-    # apply the filter
-    for team in util.get_csv_list(arg_filter):
-        if team in (game_rec['away']['abbrev'], game_rec['home']['abbrev']):
-            return game_rec
-
-    # no match
-    return None
-
-
-def convert_feedtype_to_short(feedtype):
-    if feedtype in FEEDTYPE_MAP:
-        return FEEDTYPE_MAP[feedtype]
-    return feedtype
-
-
-def convert_to_long_feedtype(feed):
-    if feed in FEEDTYPE_MAP:
-        return feed
-    for feedtype in FEEDTYPE_MAP:
-        if FEEDTYPE_MAP[feedtype] == feed:
-            return feedtype
-    return feed
 
 
 class GameDataRetriever:
@@ -151,7 +95,7 @@ class GameDataRetriever:
             game_rec['home']['name'] = str(game['teams']['home']['team']['name'])
             game_rec['home']['abbrev'] = str(game['teams']['home']['team']['abbreviation'].lower())
             game_rec['home']['score'] = str(game['teams']['home']['score'])
-            game_rec['favourite'] = is_fav(game_rec)
+            game_rec['favourite'] = gamedata.is_fav(game_rec)
             # game_rec['nhltv_link'] = 'http://nhl.com/tv/{0}/'.format(game_pk_str)
 
             # linescore
@@ -224,14 +168,14 @@ class GameDatePresenter:
         for feed in sorted(game_rec['feed'].keys()):
             if feed not in config.HIGHLIGHT_FEEDTYPES and not feed.startswith('audio-'):
                 if use_short_feeds:
-                    non_highlight_feeds.append(convert_feedtype_to_short(feed))
+                    non_highlight_feeds.append(gamedata.convert_feedtype_to_short(feed, FEEDTYPE_MAP))
                 else:
                     non_highlight_feeds.append(feed)
         highlight_feeds = list()
         for feed in game_rec['feed'].keys():
             if feed in config.HIGHLIGHT_FEEDTYPES and not feed.startswith('audio-'):
                 if use_short_feeds:
-                    highlight_feeds.append(convert_feedtype_to_short(feed))
+                    highlight_feeds.append(gamedata.convert_feedtype_to_short(feed, FEEDTYPE_MAP))
                 else:
                     highlight_feeds.append(feed)
         return '{:7} {}'.format('/'.join(non_highlight_feeds), '/'.join(highlight_feeds))
@@ -266,7 +210,7 @@ class GameDatePresenter:
 
         displayed_game_count = 0
         for game_pk in game_records:
-            if apply_filter(game_records[game_pk], arg_filter) is not None:
+            if gamedata.apply_filter(game_records[game_pk], arg_filter, FILTERS) is not None:
                 displayed_game_count += 1
                 outl.extend(self._display_game_details(game_pk, game_records[game_pk], displayed_game_count))
                 print_outl = True
@@ -279,7 +223,7 @@ class GameDatePresenter:
         border = displayutil.Border(use_unicode=config.UNICODE)
         color_on = ''
         color_off = ''
-        if is_fav(game_rec):
+        if gamedata.is_fav(game_rec):
             if config.CONFIG.parser['fav_colour'] != '':
                 color_on = ANSI.fg(config.CONFIG.parser['fav_colour'])
                 color_off = ANSI.reset()

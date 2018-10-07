@@ -23,10 +23,11 @@ from datetime import datetime
 from datetime import timedelta
 
 import mlbam.common.config as config
+import mlbam.common.gamedata as gamedata
 import mlbam.common.util as util
 import mlbam.auth as auth
 import mlbam.nhlconfig as nhlconfig
-import mlbam.gamedata as gamedata
+import mlbam.nhlgamedata as nhlgamedata
 import mlbam.standings as standings
 import mlbam.nhlstream as nhlstream
 
@@ -44,7 +45,7 @@ Filters:
 
 Feed Identifiers:
     You can use either the short form feed identifier or the long form:
-    {feedhelp}""".format(feedhelp=gamedata.get_feedtype_keystring())
+    {feedhelp}""".format(feedhelp=gamedata.get_feedtype_keystring(nhlgamedata.FEEDTYPE_MAP))
 
 
 def display_usage():
@@ -78,7 +79,7 @@ def main(argv=None):
     parser.add_argument("--tomorrow", action="store_true", help="Use tomorrow's date")
     parser.add_argument("--yesterday", action="store_true", help="Use yesterday's date")
     parser.add_argument("-t", "--team",
-                        help="Play selected game feed for team, one of: {}".format(gamedata.TEAM_CODES))
+                        help="Play selected game feed for team, one of: {}".format(nhlgamedata.TEAM_CODES))
     parser.add_argument("-f", "--feed",
                         help=("Feed type, either a live/archive game feed or highlight feed "
                               "(if available). Available feeds are shown in game list,"
@@ -138,7 +139,7 @@ def main(argv=None):
     LOG = logging.getLogger(__name__)
 
     if args.list_filters:
-        print('List of built filters: ' + ', '.join(sorted(gamedata.FILTERS.keys())))
+        print('List of built filters: ' + ', '.join(sorted(nhlgamedata.FILTERS.keys())))
         return 0
     if args.debug:
         config.CONFIG.parser['debug'] = 'true'
@@ -150,11 +151,11 @@ def main(argv=None):
         config.CONFIG.parser['password'] = args.password
     if args.team:
         team_to_play = args.team.lower()
-        if team_to_play not in gamedata.TEAM_CODES:
+        if team_to_play not in nhlgamedata.TEAM_CODES:
             # Issue #4 all-star game has funky team codes
             LOG.warning('Unexpected team code: %s', team_to_play)
     if args.feed:
-        feedtype = gamedata.convert_to_long_feedtype(args.feed.lower())
+        feedtype = gamedata.convert_to_long_feedtype(args.feed.lower(), nhlgamedata.FEEDTYPE_MAP)
     if args.resolution:
         config.CONFIG.parser['resolution'] = args.resolution
     if args.scores:
@@ -177,14 +178,14 @@ def main(argv=None):
         standings.get_standings(args.standings, args.date)
         return 0
 
-    gamedata_parser = gamedata.GameDataRetriever()
+    gamedata_retriever = nhlgamedata.GameDataRetriever()
 
     # retrieve all games for the dates given
-    game_day_tuple_list = gamedata_parser.process_game_data(args.date, args.days)
+    game_day_tuple_list = gamedata_retriever.process_game_data(args.date, args.days)
 
     if team_to_play is None and not args.recaps:
         # nothing to play; display the games
-        presenter = gamedata.GameDatePresenter()
+        presenter = nhlgamedata.GameDatePresenter()
         displayed_count = 0
         for game_date, game_records in game_day_tuple_list:
             presenter.display_game_data(game_date, game_records, args.filter)
@@ -210,7 +211,7 @@ def main(argv=None):
             for team in args.recaps.split(','):
                 recap_teams.append(team.strip())
         for game_pk in game_data:
-            game_rec = gamedata.apply_filter(game_data[game_pk], args.filter)
+            game_rec = gamedata.apply_filter(game_data[game_pk], args.filter, nhlgamedata.FILTERS)
             if game_rec and (game_rec['home']['abbrev'] in recap_teams or game_rec['away']['abbrev'] in recap_teams):
                 if 'recap' in game_rec['feed']:
                     LOG.info("Playing recap for %s at %s", game_rec['away']['abbrev'].upper(), game_rec['home']['abbrev'].upper())
@@ -235,7 +236,7 @@ def main(argv=None):
 
         # refresh the game data
         LOG.info('Game time. Refreshing game data after wait...')
-        game_day_tuple_list = gamedata_parser.process_game_data(args.date, 1)
+        game_day_tuple_list = gamedata_retriever.process_game_data(args.date, 1)
         if len(game_day_tuple_list) > 0:
             game_date, game_data = game_day_tuple_list[0]
         else:
