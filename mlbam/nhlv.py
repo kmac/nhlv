@@ -61,6 +61,8 @@ def display_usage():
         with open(readme_path, 'r') as infile:
             for line in infile:
                 print(line, end='')
+    return 0
+
 
 def main(argv=None):
     """Entry point for mlbv"""
@@ -150,7 +152,7 @@ def main(argv=None):
         team_to_play = args.team.lower()
         if team_to_play not in gamedata.TEAM_CODES:
             # Issue #4 all-star game has funky team codes
-            LOG.warn('Unexpected team code: {}'.format(team_to_play))
+            LOG.warning('Unexpected team code: %s', team_to_play)
     if args.feed:
         feedtype = gamedata.convert_to_long_feedtype(args.feed.lower())
     if args.resolution:
@@ -242,10 +244,9 @@ def main(argv=None):
 
         game_rec = nhlstream.get_game_rec(game_data, team_to_play)
 
-    return nhlstream.play_stream(game_rec, team_to_play, feedtype, args.date, args.fetch, auth.nhl_login, args.from_start, offset=args.offset, duration=args.duration)
+    return nhlstream.play_stream(game_rec, team_to_play, feedtype, args.date, args.fetch,
+                                 auth.nhl_login, args.from_start, offset=args.offset, duration=args.duration)
 
 
 if __name__ == "__main__" or __name__ == "main":
     sys.exit(main())
-
-# vim: set filetype=python

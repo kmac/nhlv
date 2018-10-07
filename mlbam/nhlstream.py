@@ -101,8 +101,7 @@ def fetch_stream(game_pk, content_id, event_id):
     }
 
     util.log_http(url, 'get', headers, sys._getframe().f_code.co_name)
-    r = requests.get(url, headers=headers, cookies=auth.load_cookies(), verify=config.VERIFY_SSL)
-    json_source = r.json()
+    json_source = requests.get(url, headers=headers, cookies=auth.load_cookies(), verify=config.VERIFY_SSL).json()
 
     if json_source['status_code'] == 1:
         media_item = json_source['user_verified_event'][0]['user_verified_content'][0]['user_verified_media_item'][0]
@@ -124,8 +123,8 @@ def fetch_stream(game_pk, content_id, event_id):
         msg = json_source['status_message']
         util.die('Error Fetching Stream: {}', msg)
 
-    LOG.debug('fetch_stream stream_url: ' + stream_url)
-    LOG.debug('fetch_stream media_auth: ' + media_auth)
+    LOG.debug('fetch_stream stream_url: %s', stream_url)
+    LOG.debug('fetch_stream media_auth: %s', media_auth)
     return stream_url, media_auth
 
 
@@ -139,13 +138,12 @@ def save_playlist_to_file(stream_url, media_auth):
         "Cookie": media_auth
     }
     util.log_http(stream_url, 'get', headers, sys._getframe().f_code.co_name)
-    r = requests.get(stream_url, headers=headers, cookies=auth.load_cookies(), verify=config.VERIFY_SSL)
-    playlist = r.text
+    playlist = requests.get(stream_url, headers=headers, cookies=auth.load_cookies(), verify=config.VERIFY_SSL).text
     playlist_file = os.path.join(config.CONFIG.dir, 'playlist-{}.m3u8'.format(time.strftime("%Y-%m-%d")))
-    LOG.debug('writing playlist to: {}'.format(playlist_file))
-    with open(playlist_file, 'w') as f:
-        f.write(playlist)
-    LOG.debug('save_playlist_to_file: {}'.format(playlist))
+    LOG.debug('writing playlist to: %s', playlist_file)
+    with open(playlist_file, 'w') as handle:
+        handle.write(playlist)
+    LOG.debug('save_playlist_to_file: %s', playlist)
 
 
 def get_game_rec(game_data, team_to_play):
