@@ -205,20 +205,20 @@ def main(argv=None):
         if args.recaps == 'all':
             for game_pk in game_data:
                 # add the home team
-                recap_teams.append(game_data[game_pk]['home_abbrev'])
+                recap_teams.append(game_data[game_pk]['home']['abbrev'])
         else:
             for team in args.recaps.split(','):
                 recap_teams.append(team.strip())
         for game_pk in game_data:
             game_rec = gamedata.apply_filter(game_data[game_pk], args.filter)
-            if game_rec and (game_rec['home_abbrev'] in recap_teams or game_rec['away_abbrev'] in recap_teams):
+            if game_rec and (game_rec['home']['abbrev'] in recap_teams or game_rec['away']['abbrev'] in recap_teams):
                 if 'recap' in game_rec['feed']:
-                    LOG.info("Playing recap for %s at %s", game_rec['away_abbrev'].upper(), game_rec['home_abbrev'].upper())
-                    stream_game_rec = nhlstream.get_game_rec(game_data, game_rec['home_abbrev'])
-                    nhlstream.play_stream(stream_game_rec, game_rec['home_abbrev'], 'recap', game_date,
+                    LOG.info("Playing recap for %s at %s", game_rec['away']['abbrev'].upper(), game_rec['home']['abbrev'].upper())
+                    stream_game_rec = nhlstream.get_game_rec(game_data, game_rec['home']['abbrev'])
+                    nhlstream.play_stream(stream_game_rec, game_rec['home']['abbrev'], 'recap', game_date,
                                           args.fetch, None, None, offset=args.offset, duration=args.duration, is_multi_highlight=True)
                 else:
-                    LOG.info("No recap available for %s at %s", game_rec['away_abbrev'].upper(), game_rec['home_abbrev'].upper())
+                    LOG.info("No recap available for %s at %s", game_rec['away']['abbrev'].upper(), game_rec['home']['abbrev'].upper())
         return 0
 
     game_rec = nhlstream.get_game_rec(game_data, team_to_play)

@@ -64,7 +64,7 @@ def is_fav(game_rec):
         return False
     for fav in config.CONFIG.parser['favs'].split(','):
         fav = fav.strip()
-        if fav in (game_rec['away_abbrev'], game_rec['home_abbrev']):
+        if fav in (game_rec['away']['abbrev'], game_rec['home']['abbrev']):
             return True
     return False
 
@@ -85,7 +85,7 @@ def apply_filter(game_rec, arg_filter):
 
     # apply the filter
     for team in util.get_csv_list(arg_filter):
-        if team in (game_rec['away_abbrev'], game_rec['home_abbrev']):
+        if team in (game_rec['away']['abbrev'], game_rec['home']['abbrev']):
             return game_rec
 
     # no match
@@ -143,12 +143,14 @@ class GameDataRetriever:
             game_rec['abstractGameState'] = str(game['status']['abstractGameState'])  # Preview, Live, Final
             game_rec['detailedState'] = str(game['status']['detailedState'])  # is something like: Scheduled, Live, Final, In Progress, Critical
             game_rec['nhldate'] = datetime.strptime(str(game['gameDate']), "%Y-%m-%dT%H:%M:%SZ")
-            game_rec['away_name'] = str(game['teams']['away']['team']['name'])
-            game_rec['away_abbrev'] = str(game['teams']['away']['team']['abbreviation'].lower())
-            game_rec['away_score'] = str(game['teams']['away']['score'])
-            game_rec['home_name'] = str(game['teams']['home']['team']['name'])
-            game_rec['home_abbrev'] = str(game['teams']['home']['team']['abbreviation'].lower())
-            game_rec['home_score'] = str(game['teams']['home']['score'])
+            game_rec['away'] = dict()
+            game_rec['away']['name'] = str(game['teams']['away']['team']['name'])
+            game_rec['away']['abbrev'] = str(game['teams']['away']['team']['abbreviation'].lower())
+            game_rec['away']['score'] = str(game['teams']['away']['score'])
+            game_rec['home'] = dict()
+            game_rec['home']['name'] = str(game['teams']['home']['team']['name'])
+            game_rec['home']['abbrev'] = str(game['teams']['home']['team']['abbreviation'].lower())
+            game_rec['home']['score'] = str(game['teams']['home']['score'])
             game_rec['favourite'] = is_fav(game_rec)
             # game_rec['nhltv_link'] = 'http://nhl.com/tv/{0}/'.format(game_pk_str)
 
@@ -286,8 +288,8 @@ class GameDatePresenter:
             color_off = ANSI.reset()
         show_scores = config.CONFIG.parser.getboolean('scores')
         game_info_str = "{}: {} ({}) at {} ({})".format(util.convert_time_to_local(game_rec['nhldate']),
-                                                        game_rec['away_name'], game_rec['away_abbrev'].upper(),
-                                                        game_rec['home_name'], game_rec['home_abbrev'].upper())
+                                                        game_rec['away']['name'], game_rec['away']['abbrev'].upper(),
+                                                        game_rec['home']['name'], game_rec['home']['abbrev'].upper())
         game_state = ''
         game_state_color_on = color_on
         game_state_color_off = color_off
@@ -313,7 +315,7 @@ class GameDatePresenter:
         if config.CONFIG.parser.getboolean('scores'):
             score = ''
             if game_rec['abstractGameState'] not in ('Preview', ):
-                score = '{}-{}'.format(game_rec['away_score'], game_rec['home_score'])
+                score = '{}-{}'.format(game_rec['away']['score'], game_rec['home']['score'])
             outl.append("{c_on}{gameinfo:<64}{c_off} {pipe} {c_on}{score:^5}{c_off} {pipe} {gsc_on}{state:>9}{gsc_off} {pipe} {c_on}{feeds}{c_off}"
                         .format(gameinfo=game_info_str, score=score, state=game_state,
                                 gsc_on=game_state_color_on, gsc_off=game_state_color_off, feeds=self.__get_feeds_for_display(game_rec),

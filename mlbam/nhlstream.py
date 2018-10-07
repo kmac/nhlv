@@ -28,11 +28,11 @@ LOG = logging.getLogger(__name__)
 
 def select_feed_for_team(game_rec, team_code, feedtype=None):
     found = False
-    if game_rec['away_abbrev'] == team_code:
+    if game_rec['away']['abbrev'] == team_code:
         found = True
         if feedtype is None and 'away' in game_rec['feed']:
             feedtype = 'away'  # assume user wants their team's feed
-    elif game_rec['home_abbrev'] == team_code:
+    elif game_rec['home']['abbrev'] == team_code:
         found = True
         if feedtype is None and 'home' in game_rec['feed']:
             feedtype = 'home'  # assume user wants their team's feed
@@ -54,7 +54,7 @@ def find_highlight_url_for_team(game_rec, feedtype):
         raise Exception('highlight: feedtype must be condensed or recap')
     if feedtype in game_rec['feed'] and 'playback_url' in game_rec['feed'][feedtype]:
         return game_rec['feed'][feedtype]['playback_url']
-    LOG.error('No playback_url found for {} vs {}'.format(game_rec['away_abbrev'], game_rec['home_abbrev']))
+    LOG.error('No playback_url found for {} vs {}'.format(game_rec['away']['abbrev'], game_rec['home']['abbrev']))
     return None
 
 
@@ -151,7 +151,7 @@ def get_game_rec(game_data, team_to_play):
     """
     game_rec = None
     for game_pk in game_data:
-        if team_to_play in (game_data[game_pk]['away_abbrev'], game_data[game_pk]['home_abbrev']):
+        if team_to_play in (game_data[game_pk]['away']['abbrev'], game_data[game_pk]['home']['abbrev']):
             game_rec = game_data[game_pk]
             break
     if game_rec is None:
@@ -166,8 +166,8 @@ def play_stream(game_rec, team_to_play, feedtype, date_str, fetch, login_func, f
         if playback_url is None:
             util.die("No playback url for feed '{}'".format(feedtype))
         stream.play_highlight(playback_url,
-                              stream.get_fetch_filename(date_str, game_rec['home_abbrev'],
-                                                        game_rec['away_abbrev'], feedtype, fetch),
+                              stream.get_fetch_filename(date_str, game_rec['home']['abbrev'],
+                                                        game_rec['away']['abbrev'], feedtype, fetch),
                               is_multi_highlight)
     else:
         # handle full game (live or archive)
@@ -187,8 +187,8 @@ def play_stream(game_rec, team_to_play, feedtype, date_str, fetch, login_func, f
                 if config.SAVE_PLAYLIST_FILE:
                     save_playlist_to_file(stream_url, media_auth)
                 streamlink(stream_url, media_auth,
-                           stream.get_fetch_filename(date_str, game_rec['home_abbrev'],
-                                                     game_rec['away_abbrev'], feedtype, fetch),
+                           stream.get_fetch_filename(date_str, game_rec['home']['abbrev'],
+                                                     game_rec['away']['abbrev'], feedtype, fetch),
                            from_start, offset, duration)
             else:
                 LOG.error("No stream URL found")
