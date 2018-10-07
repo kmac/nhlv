@@ -25,7 +25,8 @@ DEFAULTS = {  # is applied to initial config before reading from file - these ar
         'video_player': 'mpv',
 
         'api_url': 'http://statsapi.web.nhl.com/api/v1/',
-        'mf_svc_url': 'https://mf.svc.nhl.com/ws/media/mf/v2.4/stream',
+        # 'mf_svc_url': 'https://mf.svc.nhl.com/ws/media/mf/v2.4/stream',
+        'mf_svc_url': 'https://mf.svc.nhl.com/ws/media/mf/v2.4/stream?contentId={}&playbackScenario={}&platform={}&sessionKey={}&cdnName={}',
         'ua_nhl': 'NHL/11479 CFNetwork/887 Darwin/17.0.0',
         'svc_user_agent': 'NHL/11479 CFNetwork/887 Darwin/17.0.0',
 

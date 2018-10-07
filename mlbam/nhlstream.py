@@ -81,17 +81,14 @@ def fetch_stream(game_pk, content_id, event_id):
         LOG.info('Game Blacked Out: {}'.format(msg))
         return stream_url, media_auth
 
-    url = config.CONFIG.mf_svc_url
-    url += '?contentId=' + content_id
-    url += '&playbackScenario=' + config.CONFIG.playback_scenario
-    url += '&platform=' + config.CONFIG.platform
-    url += '&sessionKey=' + urllib.parse.quote_plus(session_key)
-
     # Get user set CDN
     if config.CONFIG.parser['cdn'] == 'akamai':
-        url += '&cdnName=MED2_AKAMAI_SECURE'
+        cdn = 'MED2_AKAMAI_SECURE'
     elif config.CONFIG.parser['cdn'] == 'level3':
-        url += '&cdnName=MED2_LEVEL3_SECURE'
+        cdn = 'MED2_LEVEL3_SECURE'
+
+    url = config.CONFIG.parser['mf_svc_url'].format(content_id, config.CONFIG.playback_scenario,
+                                                    config.CONFIG.platform, urllib.parse.quote_plus(session_key), cdn)
 
     headers = {
         "Accept": "*/*",
@@ -99,7 +96,7 @@ def fetch_stream(game_pk, content_id, event_id):
         "Accept-Language": "en-US,en;q=0.8",
         "Connection": "keep-alive",
         "Authorization": auth_cookie,
-        "User-Agent": config.CONFIG.svc_user_agent,
+        "User-Agent": config.CONFIG.parser['svc_user_agent'],
         "Proxy-Connection": "keep-alive"
     }
 
@@ -138,7 +135,7 @@ def save_playlist_to_file(stream_url, media_auth):
         "Accept-Encoding": "identity",
         "Accept-Language": "en-US,en;q=0.8",
         "Connection": "keep-alive",
-        "User-Agent": config.CONFIG.svc_user_agent,
+        "User-Agent": config.CONFIG.parser['svc_user_agent'],
         "Cookie": media_auth
     }
     util.log_http(stream_url, 'get', headers, sys._getframe().f_code.co_name)
