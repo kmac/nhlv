@@ -1,17 +1,14 @@
 """
 Models the game data retrieved via JSON.
 """
-import json
+
 import logging
 import os
-import requests
-import sys
 import time
 
 from datetime import datetime
 from datetime import timedelta
 
-import mlbam.auth as auth
 import mlbam.common.config as config
 import mlbam.common.gamedata as gamedata
 import mlbam.common.util as util
@@ -183,7 +180,6 @@ class GameDatePresenter:
 
     def display_game_data(self, game_date, game_records, arg_filter):
         show_scores = config.CONFIG.parser.getboolean('scores')
-        show_scores = config.CONFIG.parser.getboolean('scores')
         border = displayutil.Border(use_unicode=config.UNICODE)
         if game_records is None:
             # outl.append("No game data for {}".format(game_date))
@@ -195,7 +191,7 @@ class GameDatePresenter:
         print_outl = False
 
         # print header
-        date_hdr = '{:7}{}'.format('', '{}'.format(game_date))
+        date_hdr = '{:7}{} {}'.format('', game_date, datetime.strftime(datetime.strptime(game_date, "%Y-%m-%d"), "%a"))
         if show_scores:
             outl.append("{:64} {pipe} {:^5} {pipe} {:^9} {pipe} {}"
                         .format(date_hdr, 'Score', 'State', 'Feeds', pipe=border.pipe))
@@ -208,17 +204,17 @@ class GameDatePresenter:
                         .format(border.thickdash * 65, border.thickdash * 11, border.thickdash * 14,
                                 pipe=border.junction, c_on=border.border_color, c_off=border.color_off))
 
-        displayed_game_count = 0
+        games_displayed_count = 0
         for game_pk in game_records:
             if gamedata.apply_filter(game_records[game_pk], arg_filter, FILTERS) is not None:
-                displayed_game_count += 1
-                outl.extend(self._display_game_details(game_pk, game_records[game_pk], displayed_game_count))
+                games_displayed_count += 1
+                outl.extend(self._display_game_details(game_pk, game_records[game_pk], games_displayed_count))
                 print_outl = True
 
         if print_outl:
             print('\n'.join(outl))
 
-    def _display_game_details(self, game_pk, game_rec, displayed_game_count):
+    def _display_game_details(self, game_pk, game_rec, games_displayed_count):
         outl = list()
         border = displayutil.Border(use_unicode=config.UNICODE)
         color_on = ''

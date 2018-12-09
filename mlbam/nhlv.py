@@ -84,13 +84,16 @@ def main(argv=None):
                         help=("Feed type, either a live/archive game feed or highlight feed "
                               "(if available). Available feeds are shown in game list,"
                               "and have a short form and long form (see 'Feed identifiers' section below)"))
-    parser.add_argument("-r", "--resolution", choices=config.BANDWIDTH_CHOICES,
-                        help="Stream resolution for streamlink (overrides settting in config file)")
+    parser.add_argument("-r", "--resolution",
+                        help=("Stream resolution for streamlink (overrides settting in config file). "
+                              "Choices: {}. Can also be a comma-separated list of values (no spaces), "
+                              "e.g 720p_alt,720p,540p").format(config.BANDWIDTH_CHOICES))
     parser.add_argument("--from-start", action="store_true", help="Start live/archive stream from beginning")
     parser.add_argument("--offset", help="Amount of time (HH:MM:SS) to skip from the beginning of the stream. For live streams, this is a negative offset from the end of the stream (rewind)")
     parser.add_argument("--duration", help="Limit the playback duration, useful for watching segments of a stream")
-    parser.add_argument("--favs", help=argparse.SUPPRESS)  # help=("Favourite teams, a comma-separated list of favourite teams " "(normally specified in config file)"))
-    parser.add_argument("--filter", nargs='?', const='favs', metavar='filtername|teams',
+    parser.add_argument("--favs", help=argparse.SUPPRESS)
+                        # help=("Favourite teams, a comma-separated list of favourite teams " "(normally specified in config file)"))
+    parser.add_argument("-o", "--filter", nargs='?', const='favs', metavar='filtername|teams',
                         help=("Filter output. Either a filter name (see --list-filters) or a comma-separated "
                               "list of team codes, eg: 'tor.bos,wsh'. Default: favs"))
     parser.add_argument("--list-filters", action='store_true', help="List the built-in filters")
