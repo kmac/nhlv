@@ -101,7 +101,20 @@ def fetch_stream(game_pk, content_id, event_id):
     }
 
     util.log_http(url, 'get', headers, sys._getframe().f_code.co_name)
-    json_source = requests.get(url, headers=headers, cookies=auth.load_cookies(), verify=config.VERIFY_SSL).json()
+    # json_source = requests.get(url, headers=headers, cookies=auth.load_cookies(), verify=config.VERIFY_SSL).json()
+    response = requests.get(url, headers=headers, cookies=auth.load_cookies(), verify=config.VERIFY_SSL)
+    json_source = response.json()
+ 
+    #if json_source is not None and config.SAVE_JSON_FILE:
+    if json_source is not None:
+        output_filename = 'stream'
+        if 1:  # config.SAVE_JSON_FILE_BY_TIMESTAMP:
+            json_file = os.path.join(util.get_tempdir(),
+                                     '{}-{}.json'.format(output_filename, time.strftime("%Y-%m-%d-%H%M")))
+        else:
+            json_file = os.path.join(util.get_tempdir(), '{}.json'.format(output_filename))
+        with open(json_file, 'w') as out:  # write date to json_file
+            out.write(response.text)
 
     if json_source['status_code'] == 1:
         media_item = json_source['user_verified_event'][0]['user_verified_content'][0]['user_verified_media_item'][0]
@@ -117,8 +130,9 @@ def fetch_stream(game_pk, content_id, event_id):
             stream_url = media_item['url']
             media_auth = '{}={}'.format(str(json_source['session_info']['sessionAttributes'][0]['attributeName']),
                                         str(json_source['session_info']['sessionAttributes'][0]['attributeValue']))
-            session_key = json_source['session_key']
-            auth.update_session_key(session_key)
+            if session_key in json_source:
+                session_key = json_source['session_key']
+                auth.update_session_key(session_key)
     else:
         msg = json_source['status_message']
         util.die('Error Fetching Stream: {}', msg)

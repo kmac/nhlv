@@ -30,27 +30,10 @@ class SessionException(Exception):
     pass
 
 
-#         initial_url = "https://secure.mlb.com/enterworkflow.do?flowId=registration.wizard&c_id=mlb"
-#         # res = self.session.get(initial_url)
-#         # if not res.status_code == 200:
-#         #     raise SessionException(res.content)
-#         data = {
-#             "uri": "/account/login_register.jsp",
-#             "registrationAction": "identify",
-#             "emailAddress": config.CONFIG.parser['username'],
-#             "password": config.CONFIG.parser['password'],
-#             "submitButton": ""
-#         }
-
-#             response = self.session.get(TOKEN_URL_TEMPLATE.format(ipid=self.ipid,
-#                                                                   fingerprint=self.fingerprint,
-#                                                                   platform=PLATFORM),
-
 class Session(object):
 
-    def __init__(self, user_agent, token_url_template, platform):
+    def __init__(self, user_agent, platform):
         self.user_agent = user_agent
-        self.token_url_template = token_url_template
         self.platform = platform
 
         self.session = requests.Session()
@@ -63,9 +46,6 @@ class Session(object):
             self.load()
         else:
             self._state = {
-                'api_key': None,
-                'client_api_key': None,
-                'token': None,
                 'access_token': None,
                 'access_token_expiry': None
             }
@@ -106,46 +86,6 @@ class Session(object):
         return self.get_cookie_dict().get(name)
 
     @property
-    def ipid(self):
-        return self.get_cookie('ipid')
-
-    @property
-    def fingerprint(self):
-        return self.get_cookie('fprt')
-
-    @property
-    def api_key(self):
-        if self._state['api_key'] is None:
-            self.update_api_keys()
-        return self._state['api_key']
-
-    @property
-    def client_api_key(self):
-        if self._state['client_api_key'] is None:
-            self.update_api_keys()
-        return self._state['client_api_key']
-
-    @abc.abstractmethod
-    def update_api_keys(self):
-        return
-
-    @property
-    def token(self):
-        LOG.debug("getting token")
-        if self._state['token'] is None:
-            headers = {"x-api-key": self.api_key}
-            response = self.session.get(self.token_url_template.format(ipid=self.ipid,
-                                                                       fingerprint=self.fingerprint,
-                                                                       platform=self.platform),
-                                        headers=headers)
-            self._state['token'] = response.text
-        return self._state['token']
-
-    @token.setter
-    def token(self, value):
-        self._state['token'] = value
-
-    @property
     def access_token_expiry(self):
         if self._state['access_token_expiry'] is not None:
             return dateutil.parser.parse(self._state['access_token_expiry'])
@@ -162,17 +102,16 @@ class Session(object):
         if not self._state['access_token'] or not self.access_token_expiry or \
                 self.access_token_expiry < datetime.datetime.now(tz=datetime.timezone.utc):
             try:
-                self._state['access_token'], self.access_token_expiry = self._get_access_token()
+                self._state['access_token'], self.access_token_expiry = self.get_access_token()
             except requests.exceptions.HTTPError:
                 # Clear token and then try to get a new access_token
-                self.token = None
-                self._state['access_token'], self.access_token_expiry = self._get_access_token()
+                self._state['access_token'], self.access_token_expiry = self.get_access_token()
             self.save()
             LOG.debug("access_token: %s", self._state['access_token'])
         return self._state['access_token']
 
     @abc.abstractmethod
-    def _get_access_token(self):
+    def get_access_token(self):
         return None
 
     @abc.abstractmethod
@@ -192,7 +131,7 @@ class Session(object):
         resp = self.session.get(stream_url, headers=headers)
         playlist = resp.text
         playlist_file = os.path.join(util.get_tempdir(), 'playlist-{}.m3u8'.format(time.strftime("%Y-%m-%d")))
-        LOG.info('Writing playlist to: {}'.format(playlist_file))
-        with open(playlist_file, 'w') as f:
-            f.write(playlist)
-        LOG.debug('save_playlist_to_file: {}'.format(playlist))
+        LOG.info('Writing playlist to: %s', playlist_file)
+        with open(playlist_file, 'w') as outf:
+            outf.write(playlist)
+        LOG.debug('save_playlist_to_file: %s', playlist)

@@ -74,7 +74,6 @@ def nhl_login():
     r = requests.post(url, headers=headers, data='', cookies=load_cookies(), verify=config.VERIFY_SSL)
     if r.status_code >= 400:
         util.die("Authorization cookie couldn't be downloaded.")
-
     json_source = r.json()
 
     if get_auth_cookie() is not None:
@@ -111,7 +110,7 @@ def nhl_login():
             msg = json_source['message']
         except Exception as e:
             msg = "Please check that your username and password are correct"
-        LOG.debug('Login Error: json_source: {}'.format(json_source))
+        LOG.debug('Login Error: json_source: %s', json_source)
         util.die('Login Error: {}'.format(msg))
 
     LOG.debug('Login successful')
@@ -119,10 +118,10 @@ def nhl_login():
 
 
 def update_session_key(session_key):
-    # save session_key to file
+    """ save session_key to file """
     session_key_file = os.path.join(config.CONFIG.dir, 'sessionkey')
-    with open(session_key_file, 'w') as f:
-        print(session_key, file=f)
+    with open(session_key_file, 'w') as handle:
+        print(session_key, file=handle)
 
 
 def get_session_key(game_pk, event_id, content_id, auth_cookie):
@@ -133,10 +132,10 @@ def get_session_key(game_pk, event_id, content_id, auth_cookie):
     session_key_file = os.path.join(config.CONFIG.dir, 'sessionkey')
     if os.path.exists(session_key_file):
         if datetime.today() - datetime.fromtimestamp(os.path.getmtime(session_key_file)) < timedelta(days=1):
-            with open(session_key_file, 'r') as f:
-                for line in f:
+            with open(session_key_file, 'r') as handle:
+                for line in handle:
                     session_key = line.strip()
-                    LOG.debug('Using cached session key: {}'.format(session_key))
+                    LOG.debug('Using cached session key: %s', session_key)
                     return session_key
     LOG.debug("Requesting session key")
     epoch_time_now = str(int(round(time.time()*1000)))
@@ -153,22 +152,21 @@ def get_session_key(game_pk, event_id, content_id, auth_cookie):
         "Referer": "https://www.nhl.com/tv/{}/{}/{}".format(game_pk, event_id, content_id)
     }
     util.log_http(url, 'get', headers, sys._getframe().f_code.co_name)
-    r = requests.get(url, headers=headers, cookies=load_cookies(), verify=config.VERIFY_SSL)
-    json_source = r.json()
-    LOG.debug('Session key json: {}'.format(json_source))
+    json_source = requests.get(url, headers=headers, cookies=load_cookies(), verify=config.VERIFY_SSL).json()
+    LOG.debug('Session key json: %s', json_source)
 
     if json_source['status_code'] == 1:
-        if json_source['user_verified_event'][0]['user_verified_content'][0]['user_verified_media_item'][0]['blackout_status']['status'] == 'BlackedOutStatus':
+        if json_source['user_verified_event'][0]['user_verified_content'][0]['user_verified_media_item'][0]['blackout_status']['status'] \
+                == 'BlackedOutStatus':
             session_key = 'blackout'
-            LOG.debug('Event blacked out: {}'.format(json_source['user_verified_event'][0]['user_verified_content'][0]['user_verified_media_item'][0]))
+            LOG.debug('Event blacked out: %s',
+                      json_source['user_verified_event'][0]['user_verified_content'][0]['user_verified_media_item'][0])
         else:
             session_key = str(json_source['session_key'])
     else:
         msg = json_source['status_message']
         util.die('Could not get session key: {}'.format(msg))
 
-    LOG.debug('Retrieved session key: {}'.format(session_key))
+    LOG.debug('Retrieved session key: %s', session_key)
     update_session_key(session_key)
     return session_key
-
-
