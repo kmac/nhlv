@@ -19,9 +19,9 @@ Features:
 This project is inspired from the MLB baseball [MLBviewer](https://github.com/sdelafond/mlbviewer) project,
 although it differs in that it does not provide an interactive interface (that may be added in future releases). 
 
-This package requires a valid NHL.tv subscription In order to view live or archived games. It is also subject
-to local blackout restrictions. However, even if you don't have a subscription you can still view game recaps
-or condensed games.
+This package requires a valid NHL.tv subscription in order to view live or archived games. It is also subject
+to local blackout restrictions. However, if you don't have a subscription you can still view game recaps or
+condensed games.
 
 
 Sample console output:
@@ -41,7 +41,7 @@ Live Games:                                                      |       |      
 
 ````
 
-Sample standings output:
+Standings output:
 
 ````
    ======  Division  ======     W  OT L   P  Streak
@@ -100,27 +100,31 @@ This project incorporates some code modified from the following projects:
     - [python-lxml](http://lxml.de/) module
 * [streamlink](https://streamlink.github.io/)
 * a video player. Either `vlc` or `mpv` is recommended.
+    - Note: player can be specified via config file. If player is not on the system path you may need to
+      setup the full path in the config file.
 
 This software is tested under linux. It should work under Windows or Mac with the pre-requisites installed,
 but may require minor tweaks (bug reports are welcome).
 
 
-Note on installing python modules: 
+## 1. Installation
 
-Install via `pip` (preferably using virtualenv):
+### Via pip
 
-    pip install requests
-    pip install python-dateutil
+This project is on the Python Package Index (Pypi) at [nhlv](https://pypi.org/project/nhlv), and can be
+installed using `pip`.
+
+1. Run `pip install nhlv`
+2. Run `nhlv --init` to create a configuration directory and populate the `config` file
+   with defaults and the required MLB.tv username and password. See the next section for more details.
+
+### Archlinux
+
+Install `nhlv` via the AUR.
 
 This software is tested under linux. It should work under Windows or Mac with the pre-requisites installed, but may require minor tweaks.
 
 
-## 1. Installation
-
-1. Clone this repository.
-2. Run `pip install .`
-3. Run `nhlv --init` to create a configuration directory and populate the `config` file
-   with defaults and the required NHL.tv username and password.
 
 
 ## 2. Configuration
@@ -145,8 +149,8 @@ Some properties you may want to set in the `config` file:
     - 1) are highlighted in the game data, and 
     - 2) are used for the default filter in the `-o/--filter` option (to show only the favourite team(s))
 * `scores`: a boolean specifying whether or not you want to see scores in the game information. Warning: spoilers!
-* `resolution`: the stream quality (passed in to streamlink). Use 'best' for full HD at 60 frames/sec.
-    - others options are: 'worst', '360p', '540p', '720p_alt', '720p', 'best'
+* `resolution`: the stream quality (passed in to streamlink). Use '720p_alt' for full HD at 60 frames/sec.
+    - options are: 'worst', '224p', '288p', '360p', '504p', '540p', '720p', '720p_alt', 'best'
 
 
 ## 3. QUICKSTART
@@ -168,7 +172,7 @@ Help is available by running:
 
 ## 4. Default Behaviour: Show Schedule/Scores
 
-Running `nhlvv` by itself shows you the status of today's games, including scores (unless you've configured to hide scores by default).
+Running `nhlv` by itself shows you the status of today's games, including scores (unless you've configured to hide scores by default).
 
 ### Scores/No-Scores
 
@@ -207,9 +211,8 @@ league, division, favourites, or arbitrary teams.
 
 Watching a game is triggered by the `-t/--team TEAM` option. With this option the game stream (live or
 archived) is launched for the given team. 
-### Playing a Live or Archived Game
 
-If you pass the `-t/--team TEAM` option, the stream is launched for the given team. By default the local feed
+When passing `-t/--team TEAM` option, the stream is launched for the given team. By default the local feed
 for the given team is chosen - i.e., it will follow the home/away feed appropriate for the team so that you
 get the local team feed.  You can override the feed using the `-f/--feed` option. This works for either live
 games or for archived games (e.g. if you use the `--date` option to select an earlier date).
@@ -238,6 +241,14 @@ the `--inning` option to override this behaviour.
 
 For an archived game, the stream will start from the beginning.
 
+#### Start from Offset
+
+For both live and archived games you can start from an offset time provided via the `--offset` option.
+The offset is provide in form `HH:MM:SS`. Example:
+
+    nhlv -t wpg --offset 01:00:00  # start today's Jets game an hour into the game
+
+
 ## 6. Record/Fetch
 
 
@@ -254,7 +265,7 @@ later time while the stream is being saved to file.
 Example:
 
     nhlv --team wpg --fetch  # fetch the live jets game to disk. Most players let you view while downloading
-                             # Most video players let you view while downloading
+                             # Most video players allow you to view while downloading
 
 
 ## 7. Highlights: Recap or Condensed Games
@@ -314,7 +325,7 @@ The filter option has the form:
     -o/--filter ?filter?  : where ?filter? is optional, and is either 
                             a 'filter name' or a comma-separated list of teams
 
-> Note: -o is used as the short form because -f is taken. Pneumonic: -o -> 'only'
+> Note: -o is used as the short form because -f is taken. mnemonic: -o -> 'only'
 
 > Note: Aside from the `--filter` command, other command arguments accept the same 'filter' string.
 >       For example `--linescore ?filter?` and `--recaps ?filter?`
@@ -341,6 +352,7 @@ Examples:
 
     --filter wpg            # single team filter
     --filter wpg,ott,van    # multiple team filter
+    -o wpg,ott,van          # same as above using shorter `-o` form
 
 Note: Do not use spaces between commas unless you encapsulate the list in quotes.
 
@@ -378,14 +390,14 @@ Note: the common options have both short and long options. Both are shown in the
 ### Live Games
 
     nhlv --team wpg               # play the live jets game. The feed is chosen based on jets being home vs. away
-    nhlv -t wpg --feed national  # play live game, choose the national feed
-    nhlv -t wpg --feed away      # play live game, choose the away feed. If jets are the home team this would choose
+    nhlv -t wpg --feed national   # play live game, choose the national feed
+    nhlv -t wpg --feed away       # play live game, choose the away feed. If jets are the home team this would choose
                                   # the opponent's feed
 
 #### Archived Games
 
     nhlv --yesterday -t wpg         # play yesterday's jets game
-    nhlv --date 2017-12-27 -t wpg  # watch the jets beat the oilers #spoiler
+    nhlv --date 2017-12-27 -t wpg   # watch the jets beat the oilers #spoiler
 
 #### Highlights
 
