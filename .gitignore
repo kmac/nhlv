@@ -1,6 +1,7 @@
 /.idea
 /venv
 __pycache__
+Session.vim
 *.json
 *.log
 *.m3u8
