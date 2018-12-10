@@ -1,8 +1,10 @@
 /.idea
 /venv
 __pycache__
-Session.vim
 *.json
 *.log
 *.m3u8
 *.pyc
+mlbv.egg-info/*
+/dist
+Session.vim
