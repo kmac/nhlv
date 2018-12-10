@@ -1,3 +1,5 @@
+2018.12.09 v0.0.1 adding to pypi
+
 2018.01.27 Minor bug fixes
   - Issue #4 - was a temporary traceback during NHL prep of all-star game data that needs handling
   - Issue #3 - formatting change for worse-case CBJ vs VGK
