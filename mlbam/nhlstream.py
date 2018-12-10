@@ -192,7 +192,7 @@ def play_stream(game_rec, team_to_play, feedtype, date_str, fetch, login_func, f
             # auth.login(config.CONFIG.parser['username'],
             #            config.CONFIG.parser['password'],
             #            config.CONFIG.parser.getboolean('use_rogers', False))
-        LOG.debug('Authorization cookie: {}'.format(auth.get_auth_cookie()))
+        LOG.debug('Authorization cookie: %s', auth.get_auth_cookie())
 
         media_playback_id, event_id = select_feed_for_team(game_rec, team_to_play, feedtype)
         if media_playback_id is not None:
@@ -212,7 +212,7 @@ def play_stream(game_rec, team_to_play, feedtype, date_str, fetch, login_func, f
 
 
 def streamlink(stream_url, media_auth, fetch_filename=None, from_start=False, offset=None, duration=None):
-    LOG.debug("Stream url: " + stream_url)
+    LOG.debug("Stream url: %s", stream_url)
     auth_cookie_str = "Authorization=" + auth.get_auth_cookie()
     media_auth_cookie_str = media_auth
     user_agent_hdr = 'User-Agent=' + config.CONFIG.ua_iphone
@@ -232,12 +232,12 @@ def streamlink(stream_url, media_auth, fetch_filename=None, from_start=False, of
     elif offset:
         streamlink_cmd.append("--hls-start-offset")
         streamlink_cmd.append(offset)
-        LOG.debug("Using --hls-start-offset %s", offset)
+        LOG.info("Using --hls-start-offset %s", offset)
 
     if duration:
         streamlink_cmd.append("--hls-duration")
         streamlink_cmd.append(duration)
-        LOG.debug("Using --hls-duration %s", duration)
+        LOG.info("Using --hls-duration %s", duration)
 
     if fetch_filename is not None:
         if os.path.exists(fetch_filename):

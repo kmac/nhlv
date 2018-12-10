@@ -89,7 +89,11 @@ def main(argv=None):
                               "Choices: {}. Can also be a comma-separated list of values (no spaces), "
                               "e.g 720p_alt,720p,540p").format(config.BANDWIDTH_CHOICES))
     parser.add_argument("--from-start", action="store_true", help="Start live/archive stream from beginning")
-    parser.add_argument("--offset", help="Amount of time (HH:MM:SS) to skip from the beginning of the stream. For live streams, this is a negative offset from the end of the stream (rewind)")
+    parser.add_argument("--offset", help=("Format: HH:MM:SS. "
+                                          "For live games: this is the amount of time to rewind from now. "
+                                          "For archived games: the amount of time to skip from the beginning of the stream. "
+                                          "e.g. 01:00:00 will start an archived game one hour from the beginning, "
+                                          "or will start a live game one hour prior to now."))
     parser.add_argument("--duration", help="Limit the playback duration, useful for watching segments of a stream")
     parser.add_argument("--favs", help=argparse.SUPPRESS)
                         # help=("Favourite teams, a comma-separated list of favourite teams " "(normally specified in config file)"))
@@ -177,6 +181,10 @@ def main(argv=None):
     elif args.date is None:
         args.date = datetime.strftime(datetime.today(), "%Y-%m-%d")
 
+    if args.from_start and args.offset:
+        LOG.error("ERROR: You cannot combine the '--from-start' and '--offset' options")
+        return -1
+
     if args.standings:
         standings.get_standings(args.standings, args.date)
         return 0
@@ -201,8 +209,7 @@ def main(argv=None):
     if len(game_day_tuple_list) > 0:
         game_date, game_data = game_day_tuple_list[0]
     else:
-        # nothing to stream
-        return 0
+        return 0  # nothing to stream
 
     if args.recaps:
         recap_teams = list()
