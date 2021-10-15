@@ -1,10 +1,10 @@
 """
 Streaming functions
 """
+# pylint: disable=len-as-condition, line-too-long, missing-docstring
 
 import logging
 import os
-import requests
 import subprocess
 import sys
 import time
@@ -13,9 +13,8 @@ import urllib.error
 import urllib.parse
 
 from datetime import datetime
-from datetime import timezone
-from dateutil import tz
-from dateutil import parser
+
+import requests
 
 import mlbam.auth as auth
 import mlbam.common.util as util
@@ -41,9 +40,9 @@ def select_feed_for_team(game_rec, team_code, feedtype=None):
             LOG.info('Default (home/away) feed not found: choosing first available feed')
             if len(game_rec['feed']) > 0:
                 feedtype = list(game_rec['feed'].keys())[0]
-                LOG.info("Chose '{}' feed (override with --feed option)".format(feedtype))
+                LOG.info("Chose '%s' feed (override with --feed option)", feedtype)
         if feedtype not in game_rec['feed']:
-            LOG.error("Feed is not available: {}".format(feedtype))
+            LOG.error("Feed is not available: %s", feedtype)
             return None, None
         return game_rec['feed'][feedtype]['mediaPlaybackId'], game_rec['feed'][feedtype]['eventId']
     return None, None
@@ -54,11 +53,11 @@ def find_highlight_url_for_team(game_rec, feedtype):
         raise Exception('highlight: feedtype must be condensed or recap')
     if feedtype in game_rec['feed'] and 'playback_url' in game_rec['feed'][feedtype]:
         return game_rec['feed'][feedtype]['playback_url']
-    LOG.error('No playback_url found for {} vs {}'.format(game_rec['away']['abbrev'], game_rec['home']['abbrev']))
+    LOG.error('No playback_url found for %s vs %s', game_rec['away']['abbrev'], game_rec['home']['abbrev'])
     return None
 
 
-def fetch_stream(game_pk, content_id, event_id):
+def fetch_stream(game_pk, content_id, event_id):  # pylint: disable=too-many-branches, too-many-locals
     """ game_pk: game_pk
         event_id: eventId
         content_id: mediaPlaybackId
@@ -74,11 +73,11 @@ def fetch_stream(game_pk, content_id, event_id):
     session_key = auth.get_session_key(game_pk, event_id, content_id, auth_cookie)
     if session_key is None:
         return stream_url, media_auth
-    elif session_key == 'blackout':
+    if session_key == 'blackout':
         msg = ('The game you are trying to access is not currently available due to local '
                'or national blackout restrictions.\n'
                ' Full game archives will be available 48 hours after completion of this game.')
-        LOG.info('Game Blacked Out: {}'.format(msg))
+        LOG.info('Game Blacked Out: %s', msg)
         return stream_url, media_auth
 
     # Get user set CDN
@@ -104,8 +103,8 @@ def fetch_stream(game_pk, content_id, event_id):
     # json_source = requests.get(url, headers=headers, cookies=auth.load_cookies(), verify=config.VERIFY_SSL).json()
     response = requests.get(url, headers=headers, cookies=auth.load_cookies(), verify=config.VERIFY_SSL)
     json_source = response.json()
- 
-    #if json_source is not None and config.SAVE_JSON_FILE:
+
+    # if json_source is not None and config.SAVE_JSON_FILE:
     if json_source is not None:
         output_filename = 'stream'
         if 1:  # config.SAVE_JSON_FILE_BY_TIMESTAMP:
@@ -161,8 +160,7 @@ def save_playlist_to_file(stream_url, media_auth):
 
 
 def get_game_rec(game_data, team_to_play):
-    """
-    """
+    """Lookup game record from game data."""
     game_rec = None
     for game_pk in game_data:
         if team_to_play in (game_data[game_pk]['away']['abbrev'], game_data[game_pk]['home']['abbrev']):
@@ -173,7 +171,10 @@ def get_game_rec(game_data, team_to_play):
     return game_rec
 
 
-def play_stream(game_rec, team_to_play, feedtype, date_str, fetch, login_func, from_start, offset=None, duration=None, is_multi_highlight=False):
+# pylint: disable=too-many-locals, too-many-arguments
+def play_stream(game_rec, team_to_play, feedtype, date_str, fetch, login_func,
+                from_start, offset=None, duration=None, is_multi_highlight=False):
+    """Plays the stream."""
     if feedtype is not None and feedtype in config.HIGHLIGHT_FEEDTYPES:
         # handle condensed/recap
         playback_url = find_highlight_url_for_team(game_rec, feedtype)
@@ -212,6 +213,7 @@ def play_stream(game_rec, team_to_play, feedtype, date_str, fetch, login_func, f
 
 
 def streamlink(stream_url, media_auth, fetch_filename=None, from_start=False, offset=None, duration=None):
+    """Invoke streamlink with given url."""
     LOG.debug("Stream url: %s", stream_url)
     auth_cookie_str = "Authorization=" + auth.get_auth_cookie()
     media_auth_cookie_str = media_auth

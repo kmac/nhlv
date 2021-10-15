@@ -27,17 +27,22 @@ STANDINGS_TYPES = ('regularSeason', 'wildCard', 'divisionLeaders', 'wildCardWith
 STANDINGS_OPTIONS = ('all', 'division', 'conference', 'wildcard', 'league', 'postseason', 'preseason')
 
 TEAMS_TO_FAVS = {
-    'Nashville Predators': 'nsh', 'Boston Bruins': 'bos', 'Tampa Bay Lightning': 'tbl',
-    'Vegas Golden Knights': 'vgk', 'Winnipeg Jets': 'wpg', 'Toronto Maple Leafs': 'tor',
-    'Washington Capitals': 'wsh', 'San Jose Sharks': 'sjs', 'Minnesota Wild': 'min',
-    'Pittsburgh Penguins': 'pit', 'Los Angeles Kings': 'lak', 'Columbus Blue Jackets': 'cbj',
-    'Anaheim Ducks': 'ana', 'St. Louis Blues': 'stl', 'Colorado Avalanche': 'col',
-    'Philadelphia Flyers': 'phi', 'New Jersey Devils': 'njd', 'Dallas Stars': 'dal',
-    'Florida Panthers': 'fla', 'Calgary Flames': 'cgy', 'Carolina Hurricanes': 'car',
-    'New York Rangers': 'nyr', 'Chicago Blackhawks': 'chi', 'Edmonton Oilers': 'edm',
-    'New York Islanders': 'nyi', 'Detroit Red Wings': 'det', 'Vancouver Canucks': 'van',
-    'Montréal Canadiens': 'mtl', 'Arizona Coyotes': 'ari', 'Ottawa Senators': 'ott',
-    'Buffalo Sabres': 'buf',
+    'Anaheim Ducks': 'ana', 'Arizona Coyotes': 'ari',
+    'Boston Bruins': 'bos', 'Buffalo Sabres': 'buf',
+    'Calgary Flames': 'cgy', 'Carolina Hurricanes': 'car',
+    'Chicago Blackhawks': 'chi', 'Colorado Avalanche': 'col',
+    'Columbus Blue Jackets': 'cbj', 'Dallas Stars': 'dal',
+    'Detroit Red Wings': 'det', 'Edmonton Oilers': 'edm',
+    'Florida Panthers': 'fla', 'Los Angeles Kings': 'lak',
+    'Minnesota Wild': 'min', 'Montréal Canadiens': 'mtl',
+    'Nashville Predators': 'nsh', 'New Jersey Devils': 'njd',
+    'New York Islanders': 'nyi', 'New York Rangers': 'nyr',
+    'Ottawa Senators': 'ott', 'Philadelphia Flyers': 'phi',
+    'Pittsburgh Penguins': 'pit', 'San Jose Sharks': 'sjs',
+    'Seattle Kraken': 'sea', 'St. Louis Blues': 'stl',
+    'Tampa Bay Lightning': 'tbl', 'Toronto Maple Leafs': 'tor',
+    'Vancouver Canucks': 'van', 'Vegas Golden Knights': 'vgk',
+    'Washington Capitals': 'wsh', 'Winnipeg Jets': 'wpg',
 }
 
 

@@ -1,19 +1,29 @@
+"""
+Manages authentication with nhl.tv
+"""
+# pylint: disable=len-as-condition, line-too-long, missing-docstring
+
 import http.cookiejar
 import logging
 import os
-import requests
 import sys
 import time
 
-
 from datetime import datetime
 from datetime import timedelta
+
+import requests
 
 import mlbam.common.util as util
 import mlbam.common.config as config
 
 
 LOG = logging.getLogger(__name__)
+
+AUTH_STR = 'Basic d2ViX25obC12MS4wLjA6MmQxZDg0NmVhM2IxOTRhMThlZjQwYWM5ZmJjZTk3ZTM='
+ACCESS_TOKEN_URL = 'https://user.svc.nhl.com/oauth/token?grant_type=client_credentials'
+ROGERS_LOGIN_URL = 'https://activation-rogers.svc.nhl.com/ws/subscription/flow/rogers.login'
+NHL_LOGIN_URL = 'https://user.svc.nhl.com/v2/user/identity'
 
 
 def get_cookie_file():
@@ -23,34 +33,34 @@ def get_cookie_file():
 def load_cookies():
     """Load cookies from file."""
     cookie_file = get_cookie_file()
-    cj = http.cookiejar.LWPCookieJar()
+    cookie_jar = http.cookiejar.LWPCookieJar()
     if os.path.exists(cookie_file):
-        LOG.debug('Loading cookies from {}'.format(cookie_file))
-        cj.load(cookie_file, ignore_discard=True)
-    return cj
+        LOG.debug('Loading cookies from %s', cookie_file)
+        cookie_jar.load(cookie_file, ignore_discard=True)
+    return cookie_jar
 
 
 def save_cookies(cookiejar):
     """Save cookies to file."""
     LOG.debug('Saving cookies')
     cookie_file = get_cookie_file()
-    cj = http.cookiejar.LWPCookieJar()
+    cookie_jar = http.cookiejar.LWPCookieJar()
     if os.path.exists(cookie_file):
-        cj.load(cookie_file, ignore_discard=True)
-    for c in cookiejar:
-        args = dict(list(vars(c).items()))
+        cookie_jar.load(cookie_file, ignore_discard=True)
+    for cookie in cookiejar:
+        args = dict(list(vars(cookie).items()))
         args['rest'] = args['_rest']
         del args['_rest']
-        c = http.cookiejar.Cookie(**args)
-        cj.set_cookie(c)
-    cj.save(cookie_file, ignore_discard=True)
+        cookie = http.cookiejar.Cookie(**args)
+        cookie_jar.set_cookie(cookie)
+    cookie_jar.save(cookie_file, ignore_discard=True)
 
 
 def get_auth_cookie():
     """Get authentication cookie from file."""
     auth_cookie = None
-    cj = load_cookies()
-    for cookie in cj:
+    cookie_jar = load_cookies()
+    for cookie in cookie_jar:
         if cookie.name == "Authorization" and not cookie.is_expired():
             auth_cookie = cookie.value
     return auth_cookie
@@ -58,23 +68,24 @@ def get_auth_cookie():
 
 def nhl_login():
     """Authenticates user to nhl site."""
-    url = 'https://user.svc.nhl.com/oauth/token?grant_type=client_credentials'
     headers = {
         "Accept": "application/json",
         "Accept-Encoding": "identity",
         "Accept-Language": "en-US,en;q=0.8",
         "User-Agent": config.CONFIG.ua_pc,
         "Origin": "https://www.nhl.com",
-        "Authorization": "Basic d2ViX25obC12MS4wLjA6MmQxZDg0NmVhM2IxOTRhMThlZjQwYWM5ZmJjZTk3ZTM=",
+        "Authorization": AUTH_STR
     }
-    userid = config.CONFIG.parser['username']
-    passwd = config.CONFIG.parser['password']
-    use_rogers = config.CONFIG.parser.getboolean('use_rogers', False)
-    util.log_http(url, 'post', headers, sys._getframe().f_code.co_name)
-    r = requests.post(url, headers=headers, data='', cookies=load_cookies(), verify=config.VERIFY_SSL)
-    if r.status_code >= 400:
+    util.log_http(ACCESS_TOKEN_URL, 'post', headers,
+                  sys._getframe().f_code.co_name)
+    resp = requests.post(ACCESS_TOKEN_URL,
+                         headers=headers,
+                         data='',
+                         cookies=load_cookies(),
+                         verify=config.VERIFY_SSL)
+    if resp.status_code >= 400:
         util.die("Authorization cookie couldn't be downloaded.")
-    json_source = r.json()
+    json_source = resp.json()
 
     if get_auth_cookie() is not None:
         LOG.debug('login: already logged in (we have a valid cookie)')
@@ -82,39 +93,56 @@ def nhl_login():
 
     auth_cookie = json_source['access_token']
 
+    userid = config.CONFIG.parser['username']
+    passwd = config.CONFIG.parser['password']
+    use_rogers = config.CONFIG.parser.getboolean('use_rogers', False)
     if use_rogers:
         LOG.info("Logging in via Rogers")
-        url = 'https://activation-rogers.svc.nhl.com/ws/subscription/flow/rogers.login'
-        login_data = '{"rogerCredentials":{"email":%s,"password":%s}}' % (userid, passwd)
-        # referer = "https://www.nhl.com/login/rogers"
+        login_url = ROGERS_LOGIN_URL
+        login_data = {
+            "rogerCredentials": {
+                "email": userid,
+                "password": passwd
+            }
+        }
     else:
         LOG.info("Logging in via NHL")
-        url = 'https://user.svc.nhl.com/v2/user/identity'
-        login_data = '{"email":{"address":%s},"type":"email-password","password":{"value":%s}}' % (userid, passwd)
+        login_url = NHL_LOGIN_URL
+        login_data = {
+            "email": {
+                "address": userid
+            },
+            "type": "email-password",
+            "password": {
+                "value": passwd
+            }
+        }
 
     headers = {
-        "Accept": "*/*",
-        "Accept-Encoding": "identity",
-        "Accept-Language": "en-US,en;q=0.8",
+        "Accept": "application/json",
         "Content-Type": "application/json",
         "Authorization": auth_cookie,
-        "Connection": "keep-alive",
         "User-Agent": config.CONFIG.ua_pc
     }
 
-    util.log_http(url, 'post', headers, sys._getframe().f_code.co_name)
-    r = requests.post(url, headers=headers, data=login_data, cookies=load_cookies(), verify=config.VERIFY_SSL)
-    if r.status_code >= 400:
+    util.log_http(login_url, 'post', headers, sys._getframe().f_code.co_name)
+    resp = requests.post(login_url,
+                         headers=headers,
+                         json=login_data,
+                         cookies=load_cookies(),
+                         verify=config.VERIFY_SSL)
+    if resp.status_code >= 400:
         try:
-            json_source = r.json()
+            json_source = resp.json()
             msg = json_source['message']
         except Exception as e:
-            msg = "Please check that your username and password are correct"
-        LOG.debug('Login Error: json_source: %s', json_source)
+            msg = ('Please check that your username and password are correct'
+                   ' [%s]') % e
+        LOG.debug('Login Error: %s, json_source: %s', msg, json_source)
         util.die('Login Error: {}'.format(msg))
 
     LOG.debug('Login successful')
-    save_cookies(r.cookies)
+    save_cookies(resp.cookies)
 
 
 def update_session_key(session_key):
