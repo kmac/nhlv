@@ -1,3 +1,9 @@
+ARCHIVED
+========
+
+**nhl.tv is not accessible in my country, so I'm no longer able to use their service. I won't be putting any further effort into this repo.**
+
+
 nhlv - NHL stream viewer
 ========================
 
